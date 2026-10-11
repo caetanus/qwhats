@@ -1,6 +1,7 @@
 # The portable QWhats AppImage: built in the manylinux_2_34 image (glibc 2.34) against Qt's own 6.11.2,
 # exactly as tools/manylinux.sh does locally (same Containerfile, same tools/manylinux/inside.sh).
-# Every push and pull request gets it as an artifact; a tag v* publishes it on a GitHub release.
+# Every push and pull request gets it as an artifact; every push to main replaces the AppImage on the
+# "continuous" pre-release (a fixed public download link); a tag v* publishes it on a release of its own.
 name: AppImage
 
 on:
@@ -68,3 +69,19 @@ jobs:
         with:
           files: out/QWhats-x86_64.AppImage
           generate_release_notes: true
+
+      - name: Publish the continuous build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: qml-whats
+        run: |
+          git tag -f continuous
+          git push -f origin continuous
+          notes="Build contínuo de ${GITHUB_SHA::7} ($(date -u +%Y-%m-%d)). AppImage para x86_64 com glibc >= 2.34: baixe, dê permissão de execução (chmod +x) e rode; na primeira vez ele oferece se instalar em ~/.local."
+          if gh release view continuous >/dev/null 2>&1; then
+            gh release edit continuous --prerelease --title "QWhats — build contínuo" --notes "$notes"
+          else
+            gh release create continuous --prerelease --title "QWhats — build contínuo" --notes "$notes"
+          fi
+          gh release upload continuous ../out/QWhats-x86_64.AppImage --clobber
