@@ -1,0 +1,70 @@
+# The portable QWhats AppImage: built in the manylinux_2_34 image (glibc 2.34) against Qt's own 6.11.2,
+# exactly as tools/manylinux.sh does locally (same Containerfile, same tools/manylinux/inside.sh).
+# Every push and pull request gets it as an artifact; a tag v* publishes it on a GitHub release.
+name: AppImage
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # the release step attaches the AppImage
+
+jobs:
+  appimage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout QWhats
+        uses: actions/checkout@v4
+        with:
+          path: qml-whats
+
+      - name: Checkout solid-qml (libsolidqml)
+        uses: actions/checkout@v4
+        with:
+          repository: caetanus/solid-qml.js
+          ref: widgets
+          path: solid-qml-native
+          submodules: recursive
+
+      - name: Build image (manylinux_2_34 + clang, LDC 1.43, meson)
+        run: docker build -t qwhats-manylinux -f qml-whats/tools/manylinux/Containerfile qml-whats/tools/manylinux
+
+      - name: Cache Qt 6.11.2
+        id: qt-cache
+        uses: actions/cache@v4
+        with:
+          path: qt
+          key: qt-6.11.2-linux_gcc_64-webengine-multimedia-v1
+
+      - name: Qt 6.11.2 (aqtinstall)
+        if: steps.qt-cache.outputs.cache-hit != 'true'
+        run: >
+          docker run --rm -v "$PWD/qt:/qt" qwhats-manylinux
+          aqt install-qt linux desktop 6.11.2 linux_gcc_64 -O /qt
+          -m qtwebengine qtwebchannel qtpositioning qtmultimedia
+
+      - name: Build libsolidqml, the binding, QWhats and the AppImage
+        run: >
+          docker run --rm -e JOBS=4
+          -v "$PWD/qml-whats:/src/qml-whats" -v "$PWD/solid-qml-native:/src/solid-qml-native"
+          -v "$PWD/qt:/qt" -v "$PWD/work:/work" -v "$PWD/out:/out" -v "$PWD/tools:/tools"
+          qwhats-manylinux bash /src/qml-whats/tools/manylinux/inside.sh
+
+      - name: Upload the AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: QWhats-x86_64.AppImage
+          path: out/QWhats-x86_64.AppImage
+          if-no-files-found: error
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/QWhats-x86_64.AppImage
+          generate_release_notes: true

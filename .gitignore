@@ -1,0 +1,10 @@
+/.reggae/
+/build
+/build.ninja
+/qml/
+/qml-tsx/
+/qml-whats-ldc2
+/qml-whats-dmd
+*.o
+compile_commands.json
+/QWhats-x86_64.AppImage*

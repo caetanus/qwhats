@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- QWhats: a speech bubble that is a Q — its tail is the Q's leg; typing dots inside -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2fd07a"/>
+      <stop offset="1" stop-color="#0b7d4b"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#bg)"/>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#shine)"/>
+  <path d="M 150.2 182.9 A 70 70 0 1 1 188.9 144.2 L 206 202 Z" fill="none" stroke="#ffffff" stroke-width="18" stroke-linejoin="round"/>
+  <circle cx="98" cy="118" r="10" fill="#ffffff"/>
+  <circle cx="124" cy="118" r="10" fill="#ffffff"/>
+  <circle cx="150" cy="118" r="10" fill="#ffffff"/>
+</svg>

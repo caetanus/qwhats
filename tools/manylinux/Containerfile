@@ -1,0 +1,12 @@
+# QWhats' build image: manylinux_2_34 (glibc 2.34) + what the build needs, made once (tools/manylinux.sh).
+FROM quay.io/pypa/manylinux_2_34_x86_64
+RUN dnf -y -q install clang lld systemd-devel librsvg2-tools file xz git \
+        mesa-libEGL-devel mesa-libGL-devel libxkbcommon-devel libxkbcommon-x11 fontconfig-devel freetype-devel \
+        libX11-devel libxcb-devel xcb-util-wm xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-cursor \
+        wayland-devel dbus-devel nss nspr alsa-lib libXcomposite libXdamage libXrandr libXtst libxshmfence \
+        libxkbfile libXext libXfixes cups-libs pulseaudio-libs glib2 at-spi2-atk at-spi2-core mesa-libgbm \
+        libdrm expat && dnf clean all
+RUN /opt/python/cp312-cp312/bin/pip install -q meson ninja aqtinstall
+RUN curl -sSL https://github.com/ldc-developers/ldc/releases/download/v1.43.0/ldc2-1.43.0-linux-x86_64.tar.xz | tar -xJ -C /opt \
+    && mv /opt/ldc2-1.43.0-linux-x86_64 /opt/ldc
+ENV PATH=/opt/ldc/bin:/opt/python/cp312-cp312/bin:$PATH
