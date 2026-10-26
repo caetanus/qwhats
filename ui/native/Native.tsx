@@ -56,10 +56,10 @@ type Msg = { id: string; remote: string; author?: string; fromMe: boolean; t: nu
   isStatusMuted?: boolean;
   stickerPack?: string;
   mediaData?: { filename?: string; duration?: number; mediaStage?: string; renderableUrl?: string; waveform?: string; preview?: string;
-    width?: number; height?: number; size?: number; pageCount?: number; mimetype?: string; isGif?: boolean; thumbnailHQ?: string }; templateParams?: string[]; templateNames?: string[];
+    width?: number; height?: number; size?: number; pageCount?: number; mimetype?: string; isGif?: boolean; thumbnailHQ?: string }; templateParams?: string[]; templateNames?: string[]; templateKnown?: boolean[];
   pollName?: string; pollOptions?: { localId: number; name: string }[]; pollSelectableOptionsCount?: number; loc?: string; lat?: number; lng?: number;
   isLive?: boolean; thumbnail?: string; matchedText?: string; title?: string; description?: string; forwardingScore?: number; vcardList?: { displayName: string; vcard: string }[]; isVideoCall?: boolean; callOutcome?: string };
-type Row = { id: string; m: Msg; day: string; first: boolean; last: boolean; stickers?: Msg[]; unread?: string };
+type Row = { id: string; m: Msg; day: string; first: boolean; last: boolean; stickers?: Msg[]; sys?: Msg[]; unread?: string };
 
 // WhatsApp's design tokens the icons are painted with (the CSS has the rest).
 // the phone-number link screen's countries (WhatsApp Web lists them all; these are the common ones,
@@ -138,6 +138,17 @@ function hash(s: string) {
 function isSystem(m: Msg) {
   return m.type === "gp2" || m.type === "e2e_notification" || m.type === "notification_template" || m.type === "call_log" || m.type === "ciphertext";
 }
+// a join or leave of someone we know nothing about (no name: a number, or a hidden LID): consecutive
+// ones fold into one notice ("3 participantes saíram"), as WhatsApp shows them in big groups
+function foldableNotice(m: Msg) {
+  if (m.type !== "gp2") return false;
+  const s = m.subtype || "", p = m.templateParams || [];
+  const join = s === "invite" || (s === "add" && p.length === 2 && (p[0] === p[1] || p[0] === ""));
+  if (s !== "leave" && !join) return false;
+  const k = m.templateKnown || [];
+  return k.length > 0 && k.every((x) => !x);
+}
+function noticeKind(m: Msg) { return m.subtype === "leave" ? "leave" : "join"; }
 // Day separators, tails and group spacing: a message opens a group when the sender or the day
 // changes, and closes one when the next message is someone else's (or another day's).
 function rowsOf(list: Msg[], dayLabel: (t: number) => string, unreadFrom: string, unreadN: number, groupStickers: boolean) {
@@ -154,7 +165,17 @@ function rowsOf(list: Msg[], dayLabel: (t: number) => string, unreadFrom: string
         run.push(n);
       }
     }
-    const next = list[i + run.length];
+    // joins/leaves of people we know nothing about, one after another: one notice
+    let sysRun: Msg[] = [m];
+    if (run.length === 1 && foldableNotice(m)) {
+      while (i + sysRun.length < list.length) {
+        const n = list[i + sysRun.length];
+        if (!foldableNotice(n) || noticeKind(n) !== noticeKind(m) || dayLabel(n.t) !== dayLabel(m.t) || n.id === unreadFrom) break;
+        sysRun.push(n);
+      }
+    }
+    const span = Math.max(run.length, sysRun.length);
+    const next = list[i + span];
     const day = dayLabel(m.t);
     const newDay = !prev || dayLabel(prev.t) !== day;
     const first = newDay || isSystem(prev) || (prev.author || "") !== (m.author || "") || prev.fromMe !== m.fromMe;
@@ -162,6 +183,7 @@ function rowsOf(list: Msg[], dayLabel: (t: number) => string, unreadFrom: string
     const mark = m.id === unreadFrom ? (unreadN === 1 ? "1 mensagem não lida" : unreadN + " mensagens não lidas") : "";
     const row: Row = { id: m.id, m: m, day: newDay ? day : "", first: first || mark !== "", last: last, unread: mark };
     if (run.length > 1) { row.stickers = run; i += run.length - 1; }
+    if (sysRun.length > 1) { row.sys = sysRun; i += sysRun.length - 1; }
     out.push(row);
   }
   return out;
@@ -1857,7 +1879,7 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
     if (s === "subject") return by + " mudou o nome do grupo para \"" + (n[1] || "") + "\"";
     if (s === "description") return by + " mudou a descrição do grupo";
     if (s === "picture") return by + " mudou a imagem deste grupo";
-    if (s === "add") return by === rest ? by + " entrou usando o link de convite deste grupo" : by + " adicionou " + rest;
+    if (s === "add") return by === rest ? by + " entrou usando o link de convite deste grupo" : by === "" ? rest + " entrou" : by + " adicionou " + rest;
     if (s === "remove") return by + " removeu " + rest;
     if (s === "leave") return (rest || by) + " saiu";
     if (s === "invite") return by + " entrou usando o link de convite deste grupo";
@@ -1867,6 +1889,23 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
     if (s === "restrict") return n[1] === "true" ? by + " mudou as configurações para permitir que somente admins editem os dados do grupo" : by + " mudou as configurações para permitir que todos os participantes editem os dados do grupo";
     if (s === "ephemeral" || s === "ephemeral_setting") return ephemeralText(by, n[n.length - 1] || "0");
     return "";
+  }
+  // a folded run of joins/leaves: "A, B e mais 3 saíram"; with no number to show, "5 participantes saíram"
+  function noticeRunText(r: Row) {
+    const l = r.sys || [];
+    if (l.length < 2) return systemText(r.m);
+    const who: string[] = [];
+    for (const m of l) {
+      const n = m.templateNames || [];
+      const name = m.subtype === "leave" || (m.subtype === "add" && (n[0] || "") === "") ? (n.slice(1).join(", ") || n[0] || "") : (n[0] || "");
+      if (name !== "" && who.indexOf(name) < 0) who.push(name);
+    }
+    const byLink = l.every((m) => m.subtype === "invite" || (m.templateParams || [])[0] === (m.templateParams || [])[1]);
+    const verb = noticeKind(r.m) === "leave" ? "saíram" : byLink ? "entraram usando o link de convite deste grupo" : "entraram";
+    const shown = who.filter((n) => n !== "Contato do WhatsApp");
+    if (shown.length === 0) return l.length + " participantes " + verb;
+    const more = l.length - Math.min(2, shown.length);
+    return shown.slice(0, 2).join(", ") + (more > 0 ? " e mais " + more : "") + " " + verb;
   }
   function ephemeralText(by: string, secs: string) {
     const d = parseInt(secs);
@@ -3017,7 +3056,7 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
                     <div class="unread-sep"><div class="day-pill unread-pill"><text class="day-t unread-t">{r.unread || ""}</text></div></div>
                   </Show>
                   <Show when={isSystem(r.m)}>
-                    <div class="sys"><div class="sys-pill"><text class="sys-t">{systemText(r.m)}</text></div></div>
+                    <div class="sys"><div class="sys-pill"><text class="sys-t">{noticeRunText(r)}</text></div></div>
                   </Show>
                   <Show when={!isSystem(r.m)}>
                   <div class="mrow" classList={{ me: r.m.fromMe, last: r.last, picking: msgSelecting() }}>
@@ -3308,7 +3347,7 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
                   <Show when={staged() !== null && staged().kind === "media" && isPicture(staged().path)}>
                     <ImageEditor source={staged() ? "file://" + (staged().base || staged().path) : ""} outDir={look.cacheDir}
                       fg={tk().fg} muted={tk().muted} accent={tk().accent}
-                      iconCrop={ic("crop-rotate", tk().fg)} iconRotate={ic("rotate-cw", tk().fg)} iconDraw={ic("draw", tk().fg)} iconText={ic("title", tk().fg)}
+                      iconCrop={ic("crop-rotate", tk().fg)} iconRotate={ic("rotate-cw", tk().fg)} iconFlip={ic("flip-horizontal", tk().fg)} iconDraw={ic("draw", tk().fg)} iconText={ic("title", tk().fg)}
                       iconRect={ic("square", tk().fg)} iconPixelate={ic("pixelate", tk().fg)} iconEmoji={ic("emoji", tk().fg)} iconUndo={ic("undo", tk().fg)}
                       iconRedo={ic("redo", tk().fg)} iconDownload={ic("download", tk().fg)} iconDelete={ic("delete", "#FFFFFF")}
                       onEdited={(p: string) => stagedEdited(p)} onNotice={(t: string) => setSyncing(t)} />

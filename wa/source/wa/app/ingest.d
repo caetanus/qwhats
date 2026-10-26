@@ -609,6 +609,38 @@ final class Ingest {
                 if (auto pic = "profilePicThumb" in k) if (pic.str != "-") o["senderPic"] = pic.str;
             }
         }
+        // a system notice's people, as names (the Go core's TemplateNames: "Você", else the contact's
+        // formatted name) — and whether each one is known to us (address book, push name, verified
+        // name) or just a number / "Contato do WhatsApp": the UI folds runs of unknown joins/leaves
+        if (auto tp = "templateParams" in o) if (tp.type == JSONType.array && tp.array.length) {
+            JSONValue[] names, known;
+            string meLid;
+            {
+                const at = me.indexOf('@');
+                if (at > 0) if (const l = keys.lidForPN(me[0 .. at])) if (l.length) meLid = l ~ "@lid";
+            }
+            foreach (p; tp.array) {
+                const id = p.type == JSONType.string ? p.str : "";
+                if (id.length && (id == me || (meLid.length && id == meLid))) {
+                    names ~= JSONValue("Você");
+                    known ~= JSONValue(true);
+                } else if (id.indexOf('@') > 0) {
+                    auto k = cs.contact(account, id);
+                    names ~= JSONValue(k["formattedName"].str);
+                    const named = (("name" in k) && k["name"].str.length) || (("pushname" in k) && k["pushname"].str.length)
+                        || (("verifiedName" in k) && k["verifiedName"].str.length);
+                    known ~= JSONValue(named);
+                } else if (id.length == 0) {
+                    names ~= JSONValue("");     // no one (a join without an actor): nothing known
+                    known ~= JSONValue(false);
+                } else {
+                    names ~= JSONValue(id);
+                    known ~= JSONValue(true);
+                }
+            }
+            o["templateNames"] = names;
+            o["templateKnown"] = known;
+        }
         const type = o["type"].str;
         if (type == "ptt" || type == "audio") {
             string who = author;

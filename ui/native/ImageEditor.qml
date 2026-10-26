@@ -19,6 +19,7 @@ Item {
     // the toolbar's icons (ic(name, colour) from the UI)
     property string iconCrop: ""
     property string iconRotate: ""
+    property string iconFlip: ""
     property string iconDraw: ""
     property string iconText: ""
     property string iconRect: ""
@@ -43,6 +44,7 @@ Item {
     property int natW: 0                  // the picture as loaded
     property int natH: 0
     property int rot: 0                   // 0, 90, 180, 270 (clockwise)
+    property bool flip: false             // mirrored left↔right (after the rotation)
     readonly property int rw: rot % 180 === 0 ? natW : natH     // the rotated frame
     readonly property int rh: rot % 180 === 0 ? natH : natW
     property var crop: null               // {x, y, w, h} in the rotated frame; null = all of it
@@ -76,10 +78,10 @@ Item {
     function setObj(oid, key, v) { var i = objIndex(oid); if (i >= 0) objs.setProperty(i, key, v); }
     function removeObj(oid) { var i = objIndex(oid); if (i >= 0) { push(); objs.remove(i); if (selected === oid) selected = -1; changed(); } }
 
-    function snapshot() { return JSON.stringify({ rot: rot, crop: crop, ops: ops, objs: objList() }); }
+    function snapshot() { return JSON.stringify({ rot: rot, flip: flip, crop: crop, ops: ops, objs: objList() }); }
     function restore(s) {
         var o = JSON.parse(s);
-        rot = o.rot; crop = o.crop; ops = o.ops;
+        rot = o.rot; flip = !!o.flip; crop = o.crop; ops = o.ops;
         objs.clear();
         for (var i = 0; i < o.objs.length; i++) objs.append(o.objs[i]);
         if (objIndex(selected) < 0) selected = -1;
@@ -112,9 +114,49 @@ Item {
             objs.setProperty(j, "x", q.x); objs.setProperty(j, "y", q.y); objs.setProperty(j, "r", (ob.r + 90) % 360);
         }
         if (crop) crop = box(crop);
-        rot = (rot + 90) % 360;
+        const before = vs;
+        // what is shown is mirror(rotate(picture)): a quarter turn of that is the mirror of a quarter
+        // turn the other way
+        rot = flip ? (rot + 270) % 360 : (rot + 90) % 360;
         changed();
+        // the new frame starts where the old one was (a quarter turn back, at the old size) and turns in
+        turnAnim.stop(); animRot = -90; animK = before / vs; turnAnim.start();
     }
+
+    // mirrored left↔right: the picture, the edits, the objects (their place and tilt; a text stays
+    // readable) and the crop
+    function mirror() {
+        commitText();
+        push();
+        var W = rw;
+        var out = [];
+        for (var i = 0; i < ops.length; i++) {
+            var o = JSON.parse(JSON.stringify(ops[i]));
+            if (o.k === "path") o.pts = o.pts.map(function (p) { return { x: W - p.x, y: p.y }; });
+            else o.x = W - o.x - o.w;
+            out.push(o);
+        }
+        ops = out;
+        for (var j = 0; j < objs.count; j++) {
+            var ob = objs.get(j);
+            objs.setProperty(j, "x", W - ob.x); objs.setProperty(j, "r", (360 - ob.r) % 360);
+        }
+        if (crop) crop = { x: W - crop.x - crop.w, y: crop.y, w: crop.w, h: crop.h };
+        flip = !flip;
+        changed();
+        flipAnim.stop(); animFlip = -1; flipAnim.start();
+    }
+
+    // the turn and the mirror, animated (WhatsApp's editor): the picture and its objects together
+    property real animRot: 0
+    property real animK: 1
+    property real animFlip: 1
+    ParallelAnimation {
+        id: turnAnim
+        NumberAnimation { target: root; property: "animRot"; to: 0; duration: 220; easing.type: Easing.OutCubic }
+        NumberAnimation { target: root; property: "animK"; to: 1; duration: 220; easing.type: Easing.OutCubic }
+    }
+    NumberAnimation { id: flipAnim; target: root; property: "animFlip"; to: 1; duration: 240; easing.type: Easing.InOutQuad }
 
     // ---- the view: the cropped frame fitted in the box; in crop mode, the whole frame -----------
     readonly property var shown: (tool === "crop" || !crop) ? { x: 0, y: 0, w: Math.max(1, rw), h: Math.max(1, rh) } : crop
@@ -131,6 +173,7 @@ Item {
         function frameSpace() { ctx.save(); ctx.scale(s, s); ctx.translate(-frame.x, -frame.y); }
         frameSpace();
         ctx.save();
+        if (flip) { ctx.translate(rw, 0); ctx.scale(-1, 1); }
         if (rot === 90) { ctx.translate(rw, 0); ctx.rotate(Math.PI / 2); }
         else if (rot === 180) { ctx.translate(rw, rh); ctx.rotate(Math.PI); }
         else if (rot === 270) { ctx.translate(0, rh); ctx.rotate(-Math.PI / 2); }
@@ -213,6 +256,7 @@ Item {
         Item { width: 16; height: 1 }
         Tool { icon: root.iconCrop; name: "crop"; onHit: root.pick("crop") }
         Tool { icon: root.iconRotate; onHit: root.rotate() }
+        Tool { icon: root.iconFlip; onHit: root.mirror() }
         Tool { icon: root.iconDraw; name: "draw"; onHit: root.pick("draw") }
         Tool { icon: root.iconText; name: "text"; onHit: root.pick("text") }
         Tool { icon: root.iconRect; name: "rect"; onHit: root.pick("rect") }
@@ -285,6 +329,10 @@ Item {
     // ---- the picture ---------------------------------------------------------------------------
     Canvas {
         id: view
+        transform: [
+            Rotation { origin.x: view.width / 2; origin.y: view.height / 2; angle: root.animRot },
+            Scale { origin.x: view.width / 2; origin.y: view.height / 2; xScale: root.animK * root.animFlip; yScale: root.animK }
+        ]
         width: Math.max(1, Math.round(root.shown.w * root.vs))
         height: Math.max(1, Math.round(root.shown.h * root.vs))
         x: Math.round((root.width - width) / 2)
@@ -356,6 +404,10 @@ Item {
     Item {
         id: objLayer
         x: view.x; y: view.y; width: view.width; height: view.height
+        transform: [
+            Rotation { origin.x: objLayer.width / 2; origin.y: objLayer.height / 2; angle: root.animRot },
+            Scale { origin.x: objLayer.width / 2; origin.y: objLayer.height / 2; xScale: root.animK * root.animFlip; yScale: root.animK }
+        ]
         clip: true
         Repeater {
             model: objs

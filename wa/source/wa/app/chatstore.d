@@ -95,7 +95,7 @@ final class ChatStore {
     /// stored: a Msg without what handOut adds (names are looked up when handed out).
     static JSONValue stored(JSONValue m) {
         auto o = JSONValue(m.object.dup);
-        foreach (k; ["senderName", "templateNames", "chatName", "senderPic"]) if (k in o) o.object.remove(k);
+        foreach (k; ["senderName", "templateNames", "templateKnown", "chatName", "senderPic"]) if (k in o) o.object.remove(k);
         if (auto q = "quotedMsg" in o) {
             auto qq = JSONValue(q.object.dup);
             if ("authorName" in qq) qq.object.remove("authorName");
