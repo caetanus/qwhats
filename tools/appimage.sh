@@ -15,7 +15,7 @@ lib=${1:-$here/../solid-qml-native/build}
 lib=$(cd "$lib" && pwd)
 tools=${XDG_CACHE_HOME:-$HOME/.cache}/qml-whats-build/tools
 work=${XDG_CACHE_HOME:-$HOME/.cache}/qml-whats-build/appdir
-out=$here/QWhats-x86_64.AppImage
+out=$here/${OUT_NAME:-QWhats-x86_64.AppImage}
 qmake=${QMAKE:-/usr/lib/qt6/bin/qmake}
 # Where this Qt keeps things (Arch: /usr/lib/qt6/…; Qt's own installer: <prefix>/plugins, …/qml, …):
 qt_libs=$("$qmake" -query QT_INSTALL_LIBS); qt_plugins=$("$qmake" -query QT_INSTALL_PLUGINS)

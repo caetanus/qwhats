@@ -1,0 +1,8 @@
+{
+	"name": "kc-probe",
+	"description": "KDE Connect SMS through kc: lists counts only (threads, messages, attachments, contacts)",
+	"license": "MIT",
+	"targetType": "executable",
+	"targetPath": "/home/caetano/.cache/qml-whats-build/kc-probe",
+	"dependencies": { "kc": { "path": ".." } }
+}

@@ -9,6 +9,8 @@ import std.json;
 JSONValue defaults(string downloadDir) {
     JSONValue d = parseJSON(`{
         "notifications": true,
+        "statusNotifications": true,
+        "smsKdeConnect": false,
         "notifyPreview": true,
         "sounds": true,
         "closeToTray": true,
@@ -20,6 +22,12 @@ JSONValue defaults(string downloadDir) {
         "theme": "system",
         "zoom": 1.0,
         "listWidth": 28,
+        "nativeListWidth": 0,
+        "nativeZoom": 1.0,
+        "nativeTheme": "",
+        "voiceDenoise": true,
+        "audioRate": 1,
+        "voiceDenoiseModel": "",
         "autoUpdate": true,
         "spellcheck": true,
         "spellLangs": [],

@@ -1,0 +1,7 @@
+{
+	"name": "wa-probe",
+	"description": "Connects to WhatsApp with the D protocol as a new, unpaired device and prints what the server says",
+	"targetType": "executable",
+	"targetPath": "/home/caetano/.cache/qml-whats-build/wa-probe",
+	"dependencies": { "wa": { "path": ".." } }
+}

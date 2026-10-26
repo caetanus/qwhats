@@ -1,0 +1,1070 @@
+/* QWhats native: WhatsApp Web's own look, measured from the real thing (docs/wa-ui-spec.md): its
+   design tokens (WDS) for both themes, its sizes and spacing, its font (Roboto). Dark is the default;
+   .app.light swaps the tokens. */
+@font-face { font-family: "Roboto"; src: url("fonts/Roboto-Variable.ttf"); }
+
+.app {
+  --surface: #161717; --surface-emph: #1D1F1F; --surface-nav: #1D1F1F; --highlight: rgba(255, 255, 255, 0.1);
+  --fg: #FAFAFA; --muted: rgba(255, 255, 255, 0.6); --divider: rgba(255, 255, 255, 0.1); --outline: rgba(255, 255, 255, 0.1);
+  --accent: #21C063; --accent-deemph: #103529; --accent-emph: #D9FDD3; --on-accent: #0A0A0A; --read: #53BDEB;
+  --bubble-in: #242626; --bubble-out: #144D37; --system: #1D1F1F; --wall: #161717; --composer: #242626;
+  --link: #21C063; --search: rgba(255, 255, 255, 0.1);
+  display: flex; flex-direction: row; flex: 1; background: var(--surface-nav);
+  font-family: "Roboto"; color: var(--fg);
+}
+.app.light {
+  --surface: #FFFFFF; --surface-emph: #F7F5F3; --surface-nav: #F7F5F3; --highlight: rgba(194, 189, 184, 0.15);
+  --fg: #0A0A0A; --muted: rgba(0, 0, 0, 0.6); --divider: rgba(0, 0, 0, 0.1); --outline: rgba(0, 0, 0, 0.2);
+  --accent: #1DAA61; --accent-deemph: #D9FDD3; --accent-emph: #15603E; --on-accent: #FFFFFF; --read: #007BFC;
+  --bubble-in: #FFFFFF; --bubble-out: #D9FDD3; --system: #FFFFFF; --wall: #F5F1EB; --composer: #FFFFFF;
+  --link: #1B8755; --search: rgba(194, 189, 184, 0.15);
+}
+/* the other themes (the profile panel's list): a light or dark base (.light) and their own tokens */
+.app.th-paper {
+  --surface: #FBF8F1; --surface-emph: #F3EEE3; --surface-nav: #F3EEE3; --highlight: rgba(120, 100, 70, 0.10); --fg: #2B2A26; --muted: rgba(43, 42, 38, 0.62); --divider: rgba(60, 50, 30, 0.12); --outline: rgba(60, 50, 30, 0.22); --accent: #2E7D5B; --accent-deemph: #DCEBDD; --accent-emph: #1F5A41; --on-accent: #FFFFFF; --read: #2F6FB0; --bubble-in: #FFFDF8; --bubble-out: #E3EFD9; --system: #FFFDF8; --wall: #EFE9DC; --composer: #FFFDF8; --link: #2E7D5B; --search: rgba(120, 100, 70, 0.10);
+}
+.app.th-desert {
+  --surface: #F7EDE0; --surface-emph: #EFE0CC; --surface-nav: #EFE0CC; --highlight: rgba(150, 90, 40, 0.12); --fg: #3B2A1E; --muted: rgba(59, 42, 30, 0.65); --divider: rgba(120, 70, 30, 0.15); --outline: rgba(120, 70, 30, 0.25); --accent: #C2703D; --accent-deemph: #F3D9C2; --accent-emph: #7A3F18; --on-accent: #FFFFFF; --read: #2C7DA0; --bubble-in: #FFF8EF; --bubble-out: #F2D2B6; --system: #FFF8EF; --wall: #EAD6BC; --composer: #FFF8EF; --link: #A85A2A; --search: rgba(150, 90, 40, 0.12);
+}
+.app.th-sol-light {
+  --surface: #FDF6E3; --surface-emph: #EEE8D5; --surface-nav: #EEE8D5; --highlight: rgba(88, 110, 117, 0.12); --fg: #586E75; --muted: rgba(101, 123, 131, 0.80); --divider: rgba(88, 110, 117, 0.15); --outline: rgba(88, 110, 117, 0.25); --accent: #859900; --accent-deemph: #E4E7C4; --accent-emph: #5B6A00; --on-accent: #FDF6E3; --read: #268BD2; --bubble-in: #FFFBEF; --bubble-out: #E6EBC7; --system: #FFFBEF; --wall: #EEE8D5; --composer: #FFFBEF; --link: #268BD2; --search: rgba(88, 110, 117, 0.10);
+}
+.app.th-sol-dark {
+  --surface: #002B36; --surface-emph: #073642; --surface-nav: #073642; --highlight: rgba(147, 161, 161, 0.12); --fg: #EEE8D5; --muted: rgba(147, 161, 161, 0.85); --divider: rgba(147, 161, 161, 0.15); --outline: rgba(147, 161, 161, 0.18); --accent: #2AA198; --accent-deemph: #0A4A4C; --accent-emph: #B5E8E2; --on-accent: #002B36; --read: #268BD2; --bubble-in: #073642; --bubble-out: #0B4F4F; --system: #073642; --wall: #002B36; --composer: #073642; --link: #2AA198; --search: rgba(147, 161, 161, 0.12);
+}
+.app.th-nord {
+  --surface: #2E3440; --surface-emph: #3B4252; --surface-nav: #3B4252; --highlight: rgba(216, 222, 233, 0.10); --fg: #ECEFF4; --muted: rgba(216, 222, 233, 0.65); --divider: rgba(216, 222, 233, 0.12); --outline: rgba(216, 222, 233, 0.15); --accent: #88C0D0; --accent-deemph: #3B5664; --accent-emph: #D8F0F7; --on-accent: #2E3440; --read: #81A1C1; --bubble-in: #3B4252; --bubble-out: #3E5A66; --system: #3B4252; --wall: #2E3440; --composer: #3B4252; --link: #88C0D0; --search: rgba(216, 222, 233, 0.10);
+}
+.app.th-ctp-latte {
+  --surface: #EFF1F5; --surface-emph: #E6E9EF; --surface-nav: #E6E9EF; --highlight: rgba(76, 79, 105, 0.08); --fg: #4C4F69; --muted: #6C6F85; --divider: rgba(76, 79, 105, 0.12); --outline: rgba(76, 79, 105, 0.18); --accent: #8839EF; --accent-deemph: #E4D5FA; --accent-emph: #5A1FB0; --on-accent: #FFFFFF; --read: #1E66F5; --bubble-in: #FFFFFF; --bubble-out: #E4D5FA; --system: #E6E9EF; --wall: #E6E9EF; --composer: #FFFFFF; --link: #1E66F5; --search: rgba(76, 79, 105, 0.08);
+}
+.app.th-ctp-frappe {
+  --surface: #303446; --surface-emph: #292C3C; --surface-nav: #292C3C; --highlight: rgba(198, 208, 245, 0.08); --fg: #C6D0F5; --muted: #A5ADCE; --divider: rgba(198, 208, 245, 0.12); --outline: rgba(198, 208, 245, 0.18); --accent: #CA9EE6; --accent-deemph: #4F4466; --accent-emph: #EBDDF7; --on-accent: #232634; --read: #8CAAEE; --bubble-in: #414559; --bubble-out: #4F4466; --system: #292C3C; --wall: #232634; --composer: #414559; --link: #8CAAEE; --search: rgba(198, 208, 245, 0.08);
+}
+.app.th-ctp-macchiato {
+  --surface: #24273A; --surface-emph: #1E2030; --surface-nav: #1E2030; --highlight: rgba(202, 211, 245, 0.08); --fg: #CAD3F5; --muted: #A5ADCB; --divider: rgba(202, 211, 245, 0.12); --outline: rgba(202, 211, 245, 0.18); --accent: #C6A0F6; --accent-deemph: #463C66; --accent-emph: #EADDFB; --on-accent: #181926; --read: #8AADF4; --bubble-in: #363A4F; --bubble-out: #463C66; --system: #1E2030; --wall: #181926; --composer: #363A4F; --link: #8AADF4; --search: rgba(202, 211, 245, 0.08);
+}
+.app.th-ctp-mocha {
+  --surface: #1E1E2E; --surface-emph: #181825; --surface-nav: #181825; --highlight: rgba(205, 214, 244, 0.08); --fg: #CDD6F4; --muted: #A6ADC8; --divider: rgba(205, 214, 244, 0.12); --outline: rgba(205, 214, 244, 0.18); --accent: #CBA6F7; --accent-deemph: #43385E; --accent-emph: #EEDFFC; --on-accent: #11111B; --read: #89B4FA; --bubble-in: #313244; --bubble-out: #43385E; --system: #181825; --wall: #11111B; --composer: #313244; --link: #89B4FA; --search: rgba(205, 214, 244, 0.08);
+}
+.app.th-molokai {
+  --surface: #272822; --surface-emph: #1E1F1C; --surface-nav: #1E1F1C; --highlight: rgba(248, 248, 242, 0.08); --fg: #F8F8F2; --muted: rgba(248, 248, 242, 0.6); --divider: rgba(248, 248, 242, 0.1); --outline: rgba(248, 248, 242, 0.14); --accent: #A6E22E; --accent-deemph: #3B4A1E; --accent-emph: #E6F7C4; --on-accent: #1B1D1E; --read: #66D9EF; --bubble-in: #3E3D32; --bubble-out: #3B4A1E; --system: #1E1F1C; --wall: #1B1D1E; --composer: #3E3D32; --link: #66D9EF; --search: rgba(248, 248, 242, 0.08);
+}
+.app.th-dracula {
+  --surface: #282A36; --surface-emph: #21222C; --surface-nav: #21222C; --highlight: rgba(248, 248, 242, 0.10); --fg: #F8F8F2; --muted: rgba(248, 248, 242, 0.62); --divider: rgba(248, 248, 242, 0.10); --outline: rgba(248, 248, 242, 0.14); --accent: #BD93F9; --accent-deemph: #3E3560; --accent-emph: #E9DDFF; --on-accent: #21222C; --read: #8BE9FD; --bubble-in: #343746; --bubble-out: #44375E; --system: #21222C; --wall: #282A36; --composer: #343746; --link: #FF79C6; --search: rgba(248, 248, 242, 0.10);
+}
+
+/* ---- navigation rail (64px) ---- */
+.nav { display: flex; flex-direction: column; justify-content: space-between; width: 64px; padding: 10px 12px; background: var(--surface-nav); }
+.nav-group { display: flex; flex-direction: column; gap: 4px; }
+.nb { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 20px; }
+.nb:hover { background: var(--highlight); }
+.nb.on { background: var(--highlight); }
+.nb-ic { width: 24px; height: 24px; }
+.nav-sep { height: 1px; margin: 8px 0; background: var(--divider); }
+.nav-badge { position: absolute; left: 22px; top: -6px; display: flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 24px; padding: 2px; border: 2px solid var(--surface-nav); border-radius: 12px; background: var(--accent); }
+.nav-badge-t { font-size: 12px; font-weight: 500; color: var(--on-accent); }
+.you { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 12px; }
+.you-ic { width: 14px; height: 14px; }
+.you { overflow: hidden; }
+.you-img { width: 24px; height: 24px; border-radius: 12px; }
+
+/* ---- chat list: 40% of the window, 30% above 1300px (WhatsApp's own breakpoint) ---- */
+.list { display: flex; flex-direction: column; width: 40%; min-width: 260px; background: var(--surface); border-left: 1px solid var(--divider); }
+@media (min-width: 1301px) { .list { width: 30%; } }
+.list-head { display: flex; flex-direction: row; align-items: center; height: 64px; padding: 10px 20px; }
+.wordmark { width: 104px; height: 28px; }
+.grow { flex: 1; }
+.head-btns { display: flex; flex-direction: row; gap: 8px; }
+.ib { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 20px; }
+.ib:hover { background: var(--highlight); }
+.ib.off .ic { opacity: 0.38; }
+.ib.primary { background: var(--accent); }
+.ic { width: 24px; height: 24px; }
+.ic20 { width: 20px; height: 20px; }
+
+.search { padding: 2px 20px; margin-bottom: 4px; }
+.search-pill { overflow: hidden; display: flex; flex-direction: row; align-items: center; height: 40px; border-radius: 20px; background: var(--search); }
+.search-ic { width: 20px; height: 20px; margin: 0 12px 0 16px; }
+.search-in { flex: 1; width: 0px; height: 20px; padding-right: 8px; font-size: 14px; letter-spacing: 0.16px; color: var(--fg); }
+.search-x { width: 20px; height: 20px; margin: 0 12px 0 4px; cursor: pointer; }
+
+.filters { display: flex; flex-direction: row; gap: 8px; padding: 4px 10px 6px 20px; }
+.chips-in { display: flex; flex-direction: row; gap: 8px; }
+.chip { display: flex; flex-direction: row; align-items: center; gap: 4px; height: 32px; padding: 0 12px; border: 1px solid var(--outline); border-radius: 16px; }
+.chip:hover { background: var(--highlight); }
+.chip.on { background: var(--accent-deemph); border: 1px solid var(--accent-deemph); }
+.chip-t { font-size: 14px; font-weight: 500; letter-spacing: 0.16px; color: var(--muted); }
+.chip.on .chip-t { color: var(--accent-emph); }
+.chip-n { font-size: 12px; font-weight: 500; color: var(--muted); }
+.chip.on .chip-n { color: var(--accent-emph); }
+.chip-more { padding: 0 7px; }
+
+.chats { flex: 1; height: 0px; }
+.list-top { display: flex; flex-direction: column; }
+.arch-head { display: flex; flex-direction: row; align-items: center; gap: 16px; height: 64px; padding: 10px 12px; }
+.arch-title { font-size: 16px; font-weight: 500; color: var(--fg); }
+.archived { display: flex; flex-direction: row; align-items: center; height: 49px; margin: 4px 10px; border-radius: 12px; }
+.archived:hover { background: var(--highlight); }
+.archived-ic { display: flex; align-items: center; justify-content: center; width: 77px; height: 49px; padding: 0 15px 0 13px; }
+.archived-t { flex: 1; width: 0px; font-size: 16px; color: var(--fg); text-align: left; }
+.archived-n { font-size: 12px; font-weight: 500; color: var(--accent); margin-right: 13px; }
+
+.row { height: 76px; padding: 0 10px 4px 10px; }
+.cell { display: flex; flex-direction: row; height: 72px; border-radius: 12px; }
+.cell:hover { background: var(--highlight); }
+.cell.on { background: var(--highlight); }
+.cell-av { display: flex; align-items: center; padding: 0 12px 0 10px; }
+/* a status to watch: WhatsApp's green ring round the picture (grey once seen) */
+.av-ring { display: flex; align-items: center; justify-content: center; padding: 1px; border-radius: 27px; border: 2px solid transparent; }
+.av-ring.fresh { border: 2px solid var(--accent); }
+.av-ring.seen { border: 2px solid var(--outline); }
+.cell-text { display: flex; flex-direction: column; justify-content: center; flex: 1; width: 0px; padding-right: 15px; }
+.cell-top { display: flex; flex-direction: row; align-items: center; height: 24px; }
+.cell-name { flex: 1; width: 0px; font-size: 16px; line-height: 24px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-time { margin-left: 6px; font-size: 12px; color: var(--muted); }
+.cell-time.hot { font-weight: 500; color: var(--accent); }
+.cell-bottom { display: flex; flex-direction: row; align-items: center; height: 20px; margin-top: 2px; }
+.cell-tick { width: 18px; height: 18px; margin-right: 3px; }
+.cell-preview { flex: 1; width: 0px; font-size: 14px; line-height: 20px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-preview.typing { color: var(--accent); }
+.cell-who { max-width: 60%; font-size: 14px; line-height: 20px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-type { width: 18px; height: 18px; margin-right: 3px; }
+.cell-ic { width: 20px; height: 20px; margin-left: 6px; }
+.unread { display: flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; margin-left: 6px; padding: 0 4px; border-radius: 10px; background: var(--accent); }
+.unread.muted { background: var(--muted); }
+.unread-t { font-size: 12px; font-weight: 500; color: var(--on-accent); }
+
+/* avatars: WhatsApp's default picture (a glyph on a tinted disc, colour by contact) */
+.av { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 24px; }
+.av40 { width: 40px; height: 40px; border-radius: 20px; }
+.av-ic { width: 22px; height: 22px; }
+.av40 .av-ic { width: 20px; height: 20px; }
+
+/* ---- conversation ---- */
+.conv { display: flex; flex-direction: column; flex: 1; width: 0px; background: var(--wall); border-left: 1px solid var(--divider); }
+.wall { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
+.intro { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; flex: 1; background: var(--surface-emph); }
+.intro-t { font-size: 32px; font-weight: 300; color: var(--fg); text-align: center; }
+.intro-lock { margin-top: 24px; }
+
+.conv-head { display: flex; flex-direction: row; align-items: center; height: 64px; padding: 10px 16px; background: var(--surface); box-shadow: 0px 1px 4px rgba(10, 10, 10, 0.12); z-index: 2; }
+.conv-av { padding-right: 15px; }
+.conv-title { display: flex; flex-direction: column; justify-content: center; flex: 1; width: 0px; }
+.conv-name { font-size: 16px; font-weight: 500; line-height: 21px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-sub { font-size: 13px; line-height: 20px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-btns { display: flex; flex-direction: row; gap: 8px; margin-left: 16px; }
+
+.msgs { flex: 1; height: 0px; padding-top: 12px; }
+.day { display: flex; flex-direction: row; justify-content: center; width: 100%; padding: 0 0 12px 0; }
+.day-pill { padding: 4px 12px; border-radius: 6px; background: var(--system); box-shadow: 0px 1px 0.5px rgba(11, 20, 26, 0.13); }
+.day-t { font-size: 12px; font-weight: 500; color: var(--muted); }
+.mline { display: flex; flex-direction: column; width: 100%; }
+/* the bubble's lane: WhatsApp's 65%; a fixed width (not max-width) is what makes the engine wrap
+   long text inside it; the bubble itself shrinks to its text, at the lane's start or end */
+.bw { display: flex; flex-direction: column; align-items: flex-start; width: 80%; }
+.mrow.me .bw { align-items: flex-end; }
+.bline { max-width: 100%; }
+.bubble { max-width: 100%; }
+.sys { display: flex; flex-direction: row; justify-content: center; width: 100%; padding: 0 62px 12px 62px; }
+.sys-pill { max-width: 75%; padding: 5px 12px 6px 12px; border-radius: 7.5px; background: var(--system); box-shadow: 0px 1px 0.5px rgba(11, 20, 26, 0.13); }
+.sys-t { font-size: 12.5px; line-height: 21px; color: var(--muted); text-align: center; }
+.fwd { font-size: 13px; line-height: 20px; color: var(--muted); }
+.mrow { display: flex; flex-direction: row; width: 100%; padding: 0 49px 2px 54px; }
+.mrow.last { padding-bottom: 12px; }
+.mrow.me { justify-content: flex-end; }
+.mrow.first { padding-top: 0px; }
+.bline { display: flex; flex-direction: row; align-items: flex-start; }
+.slot { width: 8px; height: 13px; }
+.tail { width: 8px; height: 13px; }
+/* the tail is part of the bubble (its top corner), as WhatsApp Web draws it: it can't drift away
+   from the bubble whatever width the bubble ends up with; the row keeps its 8 px */
+.bubble { position: relative; }
+/* offsets from the content box: the bubble's padding (6 7 8 9) plus the tail's 8 px */
+.tail-l { position: absolute; left: -17px; top: -6px; }
+.tail-r { position: absolute; right: -15px; top: -6px; }
+.bubble.b-pic .tail-l { left: -11px; top: -3px; }
+.bubble.b-pic .tail-r { right: -11px; top: -3px; }
+.bubble.b-doc .tail-l, .bubble.b-rich .tail-l { left: -11px; top: -3px; }
+.bubble.b-doc .tail-r, .bubble.b-rich .tail-r { right: -11px; top: -3px; }
+.mrow .bline { padding-left: 8px; }
+.mrow.me .bline { padding-left: 0px; padding-right: 8px; }
+.bubble { display: flex; flex-direction: column; padding: 6px 7px 8px 9px; border-radius: 7.5px; background: var(--bubble-in); box-shadow: 0px 1px 0.5px rgba(11, 20, 26, 0.13); }
+.bubble.me { background: var(--bubble-out); }
+.bubble.tin { border-radius: 0px 7.5px 7.5px 7.5px; }
+.bubble.tout { border-radius: 7.5px 0px 7.5px 7.5px; }
+.who-click { cursor: pointer; }
+.who { font-size: 12.8px; font-weight: 500; line-height: 22px; }
+.quote { display: flex; flex-direction: row; align-self: stretch; margin: 0 0 4px 0; border-radius: 7.5px; background: rgba(0, 0, 0, 0.2); }
+.app.light .quote { background: rgba(194, 189, 184, 0.15); }
+.quote-bar { width: 4px; border-top-left-radius: 7.5px; border-bottom-left-radius: 7.5px; }
+.quote-body { display: flex; flex-direction: column; flex: 1; width: 0px; padding: 4px 12px 8px 8px; }
+.quote-who { font-size: 12.8px; font-weight: 500; line-height: 22px; }
+.quote-t { font-size: 13.2px; line-height: 20px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.body { align-self: stretch; font-size: 14px; line-height: 20px; letter-spacing: 0.16px; color: var(--fg); }
+.body.gone { color: var(--muted); }
+.content { display: flex; flex-direction: column; align-items: flex-end; }
+/* the message text: .ghost is an invisible engine text the bubble lays out and wraps; MsgText.qml
+   (selectable, rich) is drawn over it from .ovl, at the content's origin, with the ghost's size */
+.content { position: relative; }
+.ovl { position: absolute; left: 0px; top: 0px; }
+/* bold runs are wider than plain ones: a bit of slack so the rich text never needs an extra line */
+.ghost { color: transparent; letter-spacing: 0.4px; }
+.meta { display: flex; flex-direction: row; justify-content: flex-end; align-items: center; height: 15px; margin: -10px 0 -5px 0; }
+.meta.audio-me { margin-right: 63px; } /* the time beside the picture, not under it */
+/* the voice-note player (AudioMessage.qml) in a box of its own size: the engine sizes CSS boxes, not QML items */
+.audio-box { width: 300px; height: 58px; } /* the width follows the pane (Native.tsx audioW) */
+.stamp { font-size: 11px; line-height: 15px; color: var(--muted); }
+.meta-tick { width: 16px; height: 16px; margin-left: 3px; }
+/* a received message's row (rows are recycled: the tick is always there, emptied and folded) */
+.meta-tick.tick-off { width: 0px; margin-left: 0px; }
+.reacts { display: flex; flex-direction: row; align-items: center; height: 26px; margin: -6px 0 0 16px; padding: 0 6px; border-radius: 13px; background: var(--bubble-in); border: 1px solid var(--surface); }
+.reacts-t { font-size: 14px; }
+
+.footer { padding: 0 12px 12px 12px; }
+.composer { display: flex; flex-direction: row; align-items: center; min-height: 52px; padding: 5px; border-radius: 26px; background: var(--composer); box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.12); }
+.emoji-btn { margin-right: 6px; }
+.input { flex: 1; width: 0px; height: 22px; font-size: 15px; color: var(--fg); }
+/* the profile's "Recado" being edited: the whole width, WhatsApp Web's green underline */
+.about-in { align-self: stretch; height: 26px; font-size: 15px; color: var(--fg); border-bottom: 2px solid var(--accent); padding: 0 0 2px 0; }
+.about-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.send-btn { margin-left: 5px; }
+.send-btn.primary { background: var(--accent); }
+
+/* ---- login ---- */
+/* ---- the link-device screens (WhatsApp Web's landing, measured: always its light page) ---- */
+.login { flex: 1; display: flex; flex-direction: column; align-items: stretch; padding: 14px 40px; background: #FCF5EB; }
+.lg-head { height: 80px; display: flex; flex-direction: row; align-items: flex-start; }
+.lg-logo { width: 31px; height: 30px; margin-top: -4px; }
+.lg-word { width: 74px; height: 20px; margin-top: 3px; margin-left: 4px; }
+.lg-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; margin-bottom: 80px; }
+.lg-card { width: 872px; padding: 48px; border: 1px solid #000000; border-radius: 25px; background: #FFFFFF; }
+.lg-qrcard { display: flex; flex-direction: column; gap: 40px; }
+.lg-qrrow { display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
+.lg-left { display: flex; flex-direction: column; align-items: flex-start; gap: 40px; }
+.lg-title { font-size: 32px; line-height: 38px; color: #1D1F1F; }
+.lg-steps { display: flex; flex-direction: column; gap: 20px; }
+.lg-step { display: flex; flex-direction: row; align-items: stretch; gap: 12px; }
+/* the line between the numbers: from under one circle to the next, across the 20 px gap */
+.lg-stepcol { display: flex; flex-direction: column; align-items: center; }
+.lg-conn { flex: 1; width: 1px; margin-bottom: -20px; background: #000000; }
+.lg-center { text-align: center; }
+.lg-num { width: 26px; height: 26px; border: 1px solid #000000; border-radius: 13px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; }
+.lg-num-t { font-size: 14px; color: #000000; }
+.lg-help { margin-top: -20px; }
+.lg-link { display: flex; flex-direction: row; align-items: center; gap: 4px; background: transparent; }
+.lg-ul { border-bottom: 2px solid #25D366; }
+.lg-link-t { font-size: 16px; line-height: 18px; font-weight: 500; color: #1D1F1F; }
+.lg-link-ic { width: 16px; height: 16px; }
+.lg-qr { position: relative; width: 228px; height: 228px; }
+.lg-qr-img { width: 228px; height: 228px; }
+/* WhatsApp's logo in the middle of the code (WAWebQrCodeWaLogo: 64 on a 228 code) */
+.lg-qr-logo { position: absolute; left: 82px; top: 82px; width: 64px; height: 64px; }
+.lg-qr-logo-img { width: 64px; height: 64px; }
+.lg-alt { display: flex; flex-direction: row; justify-content: flex-end; padding-top: 4px; }
+.lg-col { display: flex; flex-direction: column; align-items: center; }
+.lg-sub { font-size: 18px; line-height: 21px; color: #1D1F1F; margin-top: 4px; }
+.lg-subrow { margin-top: 4px; }
+.lg-form { display: flex; flex-direction: column; gap: 12px; width: 320px; margin-top: 32px; }
+.lg-country { height: 52px; padding: 0 24px; border: 1px solid #0A0A0A; border-radius: 24px; background: #FFFFFF; display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
+.lg-country-t { font-size: 14px; color: #1D1F1F; }
+.lg-chev { width: 20px; height: 20px; }
+.lg-phone { height: 52px; padding: 0 24px; border: 1px solid #0A0A0A; border-radius: 24px; background: #FFFFFF; display: flex; flex-direction: row; align-items: center; gap: 4px; }
+.lg-dial { font-size: 16px; color: rgba(0, 0, 0, 0.6); }
+.lg-phone-in { flex: 1; width: 0px; height: 20px; font-size: 16px; color: #1D1F1F; }
+.lg-err { font-size: 14px; color: #EA0038; }
+.lg-next { margin-top: 48px; height: 40px; padding: 0 24px; border-radius: 20px; background: #1DAA61; display: flex; align-items: center; justify-content: center; }
+.lg-next-t { font-size: 14px; font-weight: 500; color: #FFFFFF; }
+.lg-alt-c { margin-top: 28px; }
+.lg-cells { display: flex; flex-direction: row; align-items: center; margin-top: 32px; }
+.lg-cell { width: 42px; padding: 13px 0; margin: 0 4px; border: 1px solid #959393; border-radius: 8px; background: #FFFFFF; display: flex; justify-content: center; }
+.lg-cell-t { font-size: 22px; font-weight: 500; color: #0A0A0A; }
+.lg-dash { font-size: 32px; font-weight: 500; color: #0A0A0A; padding: 3px; }
+.lg-steps-c { margin-top: 40px; }
+.lg-foot { display: flex; flex-direction: column; align-items: center; gap: 24px; padding-top: 8px; }
+.lg-noacc { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
+.lg-noacc-t { font-size: 18px; line-height: 25px; padding-top: 8px; color: #1D1F1F; }
+.lg-start { padding-top: 12px; }
+.lg-e2e { display: flex; flex-direction: row; align-items: center; gap: 4px; }
+.lg-lock { width: 20px; height: 20px; }
+.lg-e2e-t { font-size: 16px; color: rgba(0, 0, 0, 0.6); }
+.lg-terms { background: transparent; }
+.lg-terms-t { font-size: 12px; color: rgba(0, 0, 0, 0.6); }
+.lg-link:focus, .lg-terms:focus, .lg-country:focus, .lg-next:focus, .lg-phone-in:focus { outline: none; }
+.btn { height: 40px; padding: 0 24px; border-radius: 20px; background: var(--accent); }
+.btn-t { font-size: 14px; font-weight: 500; color: var(--on-accent); }
+
+/* WhatsApp draws no dotted focus box on what you click or type in */
+.input:focus, .search-in:focus, .cell:focus, .chip:focus, .ib:focus, .nb:focus, .archived:focus { outline: none; }
+
+/* ---- media (photos, videos, stickers, documents) ---- */
+.bubble.b-pic { padding: 3px; }
+.bubble.b-pic .content { padding: 6px 4px 5px 6px; }
+.bubble.b-pic .who { padding: 0 4px 2px 6px; }
+.bubble.b-sticker { padding: 0px; background: transparent; box-shadow: none; }
+.bubble.b-doc { padding: 3px 3px 8px 3px; }
+.bubble.b-doc .content { padding: 4px 4px 0 6px; }
+.media { position: relative; border-radius: 6px; overflow: hidden; }
+.media-img { width: 100%; height: 100%; }
+.media-play { position: absolute; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 25px; background: rgba(11, 20, 26, 0.55); }
+.media-dur { position: absolute; left: 8px; display: flex; flex-direction: row; align-items: center; gap: 4px; height: 20px; }
+.media-dur-ic { width: 16px; height: 16px; }
+.media-dur-t { font-size: 11px; color: #FFFFFF; }
+.media-meta { position: absolute; display: flex; flex-direction: row; align-items: center; gap: 3px; height: 20px; padding: 0 6px; border-radius: 10px; background: rgba(11, 20, 26, 0.35); }
+.media-meta.sticker { background: var(--system); }
+.media-meta-t { font-size: 11px; color: #FFFFFF; }
+.media-meta.sticker .media-meta-t { color: var(--muted); }
+.doc { display: flex; flex-direction: row; align-items: center; gap: 10px; width: 330px; height: 62px; padding: 0 12px; border-radius: 6px; background: rgba(0, 0, 0, 0.18); }
+.app.light .doc { background: rgba(194, 189, 184, 0.18); }
+.doc-badge { display: flex; align-items: flex-end; justify-content: center; width: 26px; height: 30px; padding-bottom: 3px; border-radius: 3px; }
+.doc-badge-t { font-size: 8px; font-weight: 700; color: #FFFFFF; }
+.doc-name { flex: 1; width: 0px; font-size: 14px; line-height: 20px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-dl { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 17px; border: 1px solid var(--outline); }
+.doc-wrap { display: flex; flex-direction: column; }
+.doc-foot { display: flex; flex-direction: row; align-items: center; height: 15px; margin: 5px 4px 0 6px; }
+.doc-info { flex: 1; font-size: 11px; line-height: 15px; color: var(--muted); }
+.viewer { position: absolute; left: 0px; top: 0px; z-index: 50; }
+
+/* ---- sending: attach menu, preview, recording ---- */
+.ib.on { background: var(--highlight); }
+.attach-menu { position: absolute; left: 16px; bottom: 76px; display: flex; flex-direction: column; width: 220px; padding: 8px 0; border-radius: 16px;
+  background: var(--composer); box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.3); z-index: 30; }
+.attach-item { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; height: 44px; padding: 0 16px; }
+.attach-item:hover { background: var(--highlight); }
+.attach-ic { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 15px; }
+.attach-t { font-size: 15px; color: var(--fg); }
+.rec { display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 0 4px 0 8px; }
+.rec-dot { width: 10px; height: 10px; border-radius: 5px; background: #FB5061; }
+.rec-t { font-size: 15px; color: var(--fg); }
+.stage { position: absolute; left: 0px; top: 64px; bottom: 0px; width: 100%; display: flex; flex-direction: column; background: var(--surface-emph); z-index: 40; }
+.stage-head { display: flex; flex-direction: row; align-items: center; gap: 12px; height: 64px; padding: 0 16px; }
+.stage-name { flex: 1; font-size: 16px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage-body { display: flex; align-items: center; justify-content: center; flex: 1; padding: 24px; }
+.stage-img { width: 70%; height: 100%; }
+.stage-file { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.stage-file-ic { width: 96px; height: 96px; }
+.stage-file-t { font-size: 16px; color: var(--fg); }
+.stage-cap { display: flex; flex-direction: row; justify-content: center; padding: 8px 80px 16px 80px; }
+.stage-composer { display: flex; flex-direction: row; align-items: center; flex: 1; max-width: 740px; height: 52px; padding: 0 20px; border-radius: 12px; background: var(--composer); }
+.stage-foot { display: flex; flex-direction: row; align-items: center; height: 104px; padding: 0 24px; border-top: 1px solid var(--divider); }
+.stage-strip { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; flex: 1; padding-left: 80px; }
+.stage-thumb { width: 52px; height: 52px; border-radius: 6px; border: 2px solid var(--divider); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.stage-thumb.on { border: 3px solid var(--accent); }
+.stage-thumb-img { width: 48px; height: 48px; border-radius: 4px; }
+.stage-thumb.on .stage-thumb-img { width: 46px; height: 46px; }
+.stage-thumb-ic { width: 28px; height: 28px; }
+.stage-thumb-x { position: absolute; left: 30px; top: 2px; width: 18px; height: 18px; border-radius: 9px; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; }
+.stage-thumb-xi { width: 12px; height: 12px; }
+.stage-more { width: 52px; height: 52px; border-radius: 6px; border: 1px solid var(--outline); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.stage-send { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 30px; background: var(--accent); }
+
+/* ---- location, contact, poll ---- */
+.bubble.b-rich { padding: 3px 3px 8px 3px; }
+.loc { display: flex; flex-direction: column; width: 270px; }
+.loc-map { display: flex; align-items: center; justify-content: center; width: 270px; height: 150px; border-radius: 6px; background: rgba(0, 0, 0, 0.2); }
+.app.light .loc-map { background: #E9EDEF; }
+.loc-img { width: 270px; height: 150px; }
+.loc-pin { width: 40px; height: 40px; }
+.loc-t { font-size: 14px; line-height: 20px; color: var(--fg); margin: 6px 6px 0 6px; }
+.loc-s { font-size: 13px; line-height: 18px; color: var(--muted); margin: 0 6px; }
+.vc { display: flex; flex-direction: row; align-items: center; gap: 12px; width: 260px; padding: 8px 8px 12px 8px; border-bottom: 1px solid var(--divider); }
+.vc-av { display: flex; align-items: center; justify-content: center; width: 49px; height: 49px; border-radius: 25px; }
+.vc-name { flex: 1; font-size: 16px; color: var(--fg); }
+.vc-actions { display: flex; flex-direction: row; justify-content: center; padding-top: 8px; }
+.vc-btn { height: 28px; padding: 0 12px; }
+.vc-btn-t { font-size: 14px; font-weight: 500; color: var(--link); }
+.poll { display: flex; flex-direction: column; gap: 4px; width: 300px; padding: 4px 6px 8px 6px; }
+.poll-q { font-size: 15px; font-weight: 500; line-height: 21px; color: var(--fg); }
+.poll-hint { display: flex; flex-direction: row; align-items: center; gap: 4px; }
+.poll-hint-ic { width: 14px; height: 14px; }
+.poll-hint-t { font-size: 12px; color: var(--muted); }
+.poll-opt { display: flex; flex-direction: row; align-items: center; gap: 12px; height: 40px; padding: 0 6px; }
+.poll-dot { width: 20px; height: 20px; border-radius: 10px; border: 2px solid var(--muted); }
+.poll-name { font-size: 14px; color: var(--fg); }
+
+/* ---- pictures, link previews, reply/edit bar, forward chooser, divider ---- */
+.av { overflow: hidden; }
+.av-img { width: 100%; height: 100%; border-radius: 24px; }
+.av40 .av-img { border-radius: 20px; }
+.lp { display: flex; flex-direction: row; margin: 0 0 6px 0; border-radius: 6px; background: rgba(0, 0, 0, 0.18); overflow: hidden; cursor: pointer; }
+.app.light .lp { background: rgba(194, 189, 184, 0.2); }
+.lp-img { width: 90px; height: 90px; }
+.lp-text { display: flex; flex-direction: column; justify-content: center; gap: 2px; flex: 1; width: 0px; padding: 8px 10px; }
+.lp-title { font-size: 14px; font-weight: 500; line-height: 19px; color: var(--fg); }
+.lp-desc { font-size: 12px; line-height: 16px; color: var(--muted); }
+.lp-site { font-size: 12px; line-height: 16px; color: var(--muted); }
+.cbar { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 0 12px 6px 12px; padding: 6px 6px 6px 8px; border-radius: 12px; background: var(--composer); }
+.cbar-quote { display: flex; flex-direction: row; flex: 1; width: 0px; border-radius: 7.5px; background: rgba(0, 0, 0, 0.2); }
+.app.light .cbar-quote { background: rgba(194, 189, 184, 0.15); }
+.divider { width: 0px; z-index: 10; }
+.modal { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.55); z-index: 60; }
+.fwd-box { display: flex; flex-direction: column; width: 480px; height: 80%; border-radius: 12px; background: var(--surface); box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.4); }
+.fwd-head { display: flex; flex-direction: row; align-items: center; gap: 16px; height: 60px; padding: 0 16px; }
+.fwd-title { font-size: 18px; color: var(--fg); }
+.fwd-search { padding: 0 16px 8px 16px; }
+.fwd-list { display: flex; flex-direction: column; flex: 1; height: 0px; overflow-y: auto; }
+.fwd-row { display: flex; flex-direction: row; align-items: center; gap: 14px; height: 60px; padding: 0 20px; }
+.fwd-row:hover { background: var(--highlight); }
+.fwd-check { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--muted); }
+.fwd-check.on { background: var(--accent); border: 2px solid var(--accent); }
+.fwd-name { flex: 1; font-size: 16px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fwd-foot { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-emph); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+.fwd-names { flex: 1; font-size: 14px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- the info drawer (WhatsApp Web's "Dados do contato" / "Dados do grupo") ---- */
+.conv-av, .conv-title { cursor: pointer; }
+/* over the conversation, not beside it: opening it doesn't change the chat's layout */
+.info { position: absolute; right: 0px; top: 0px; height: 100%; display: flex; flex-direction: column; width: 380px; background: var(--surface-emph); border-left: 1px solid var(--divider); box-shadow: -4px 0px 16px rgba(0, 0, 0, 0.35); z-index: 40; }
+.info-head { display: flex; flex-direction: row; align-items: center; gap: 16px; height: 64px; padding: 0 16px; background: var(--surface); }
+.info-title { font-size: 16px; color: var(--fg); }
+.info-scroll { display: flex; flex-direction: column; gap: 10px; flex: 1; height: 0px; overflow-y: auto; padding-bottom: 20px; }
+.info-card { display: flex; flex-direction: column; gap: 6px; padding: 16px 28px; background: var(--surface); }
+.info-top { align-items: center; padding: 28px 28px 20px 28px; gap: 4px; }
+.info-av { display: flex; align-items: center; justify-content: center; width: 200px; height: 200px; border-radius: 100px; overflow: hidden; margin-bottom: 12px; }
+.info-av-ic { width: 90px; height: 90px; }
+.info-av-img { width: 200px; height: 200px; border-radius: 100px; }
+/* my picture's "change" camera: shown while the pointer is over it */
+.av-cam { position: absolute; right: 12px; bottom: 12px; width: 48px; height: 48px; border-radius: 24px; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; }
+.ic24 { width: 24px; height: 24px; }
+.info-name { font-size: 22px; color: var(--fg); text-align: center; }
+.info-sub { font-size: 16px; color: var(--muted); text-align: center; }
+.info-label { font-size: 14px; color: var(--muted); }
+.info-text { font-size: 15px; line-height: 22px; color: var(--fg); }
+.info-row { display: flex; flex-direction: row; align-items: center; gap: 22px; min-height: 48px; cursor: pointer; }
+.info-row-col { display: flex; flex-direction: column; flex: 1; width: 0px; }
+.info-col-t { font-size: 16px; color: var(--fg); }
+.info-row-t { flex: 1; font-size: 16px; color: var(--fg); }
+.info-row-s { font-size: 13px; color: var(--muted); }
+.danger-t { color: #FB5061; }
+.toggle { width: 34px; height: 14px; border-radius: 7px; background: var(--outline); }
+.toggle.on { background: var(--accent-deemph); }
+.toggle-knob { width: 20px; height: 20px; margin-top: -3px; border-radius: 10px; background: var(--muted); }
+.toggle.on .toggle-knob { margin-left: 14px; background: var(--accent); }
+.member { display: flex; flex-direction: row; align-items: center; gap: 14px; height: 60px; cursor: pointer; }
+.member-name { flex: 1; width: 0px; font-size: 16px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin { padding: 2px 8px; border-radius: 6px; background: var(--accent-deemph); }
+.admin-t { font-size: 12px; color: var(--accent-emph); }
+
+/* ---- the rail's tabs ---- */
+.pane { display: flex; flex-direction: column; flex: 1; height: 0px; }
+.panel-title { font-size: 22px; font-weight: 500; color: var(--fg); }
+.plist { display: flex; flex-direction: column; flex: 1; height: 0px; overflow-y: auto; }
+.empty-note { padding: 40px 32px; font-size: 14px; color: var(--muted); text-align: center; }
+.prow { display: flex; flex-direction: row; align-items: center; gap: 14px; height: 72px; margin: 0 10px; padding: 0 14px; border-radius: 12px; cursor: pointer; }
+.prow:hover { background: var(--highlight); }
+.prow.sub { margin-left: 34px; height: 64px; }
+.prow-text { display: flex; flex-direction: column; justify-content: center; gap: 2px; flex: 1; width: 0px; }
+.prow-name { font-size: 16px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow-name.missed { color: #FB5061; }
+.prow-sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ring { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 24px; border: 2px solid var(--accent); }
+.ring.seen { border: 2px solid var(--outline); }
+.sring { position: relative; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
+.sring-arcs { position: absolute; left: 0px; top: 0px; width: 48px; height: 48px; }
+.av.sq { border-radius: 12px; }
+.community { display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 1px solid var(--divider); }
+.grid { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 8px 12px; }
+.tile { position: relative; width: 120px; height: 120px; border-radius: 6px; overflow: hidden; background: var(--highlight); cursor: pointer; }
+.tile-img { width: 120px; height: 120px; }
+.tile-badge { position: absolute; left: 6px; top: 94px; }
+.fwd-quick { display: flex; align-items: center; justify-content: center; align-self: center; width: 32px; height: 32px; margin-left: 8px; border-radius: 16px; }
+.fwd-quick:hover { background: var(--highlight); }
+
+/* channel messages: reaction and forward counts under the bubble */
+.ch-row { display: flex; flex-direction: row; gap: 6px; margin: -4px 0 0 12px; }
+.ch-pill { display: flex; flex-direction: row; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border-radius: 15px; background: var(--bubble-in); border: 1px solid var(--surface); }
+.ch-pill-t { font-size: 14px; color: var(--muted); }
+
+/* ---- the list's side views: new chat, new group, starred; selection mode; the app lock ---- */
+.fab { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 20px; background: var(--accent); margin-left: 8px; }
+.fab56 { width: 56px; height: 56px; border-radius: 28px; }
+.fab:focus { outline: none; }
+.side { display: flex; flex-direction: column; flex: 1; height: 0px; }
+.side-list { display: flex; flex-direction: column; flex: 1; height: 0px; overflow-y: auto; }
+.side-label { padding: 24px 20px 12px 20px; font-size: 16px; color: var(--accent); }
+.side-text { display: flex; flex-direction: column; flex: 1; width: 0px; }
+.side-sub { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-picked { padding: 8px 20px; font-size: 14px; color: var(--fg); }
+.side-foot { display: flex; flex-direction: row; justify-content: center; padding: 20px; }
+.side-center { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 28px 20px; }
+.side-field { display: flex; flex-direction: row; align-self: stretch; height: 40px; align-items: center; padding: 0 8px; border-bottom: 2px solid var(--accent); }
+.av40 { width: 40px; height: 40px; border-radius: 20px; }
+.av200 { width: 200px; height: 200px; border-radius: 100px; display: flex; align-items: center; justify-content: center; }
+.av-ic-big { width: 96px; height: 96px; }
+.av.green { background: var(--accent); }
+.ic16 { width: 16px; height: 16px; }
+.grow { flex: 1; }
+.cell-sel { display: flex; align-items: center; padding-left: 16px; }
+.star-row { display: flex; flex-direction: column; gap: 4px; padding: 12px 20px; border-bottom: 1px solid var(--divider); }
+.star-row:hover { background: var(--highlight); }
+.star-top { display: flex; flex-direction: row; align-items: center; }
+.star-who { flex: 1; width: 0px; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.star-body { font-size: 15px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lock-box { display: flex; flex-direction: column; gap: 16px; width: 420px; padding: 24px; border-radius: 24px; background: var(--surface); }
+.lock-field { display: flex; flex-direction: row; align-items: center; height: 40px; padding: 0 12px; border-radius: 8px; background: var(--search); align-self: stretch; }
+.lock-btns { display: flex; flex-direction: row; justify-content: flex-end; gap: 8px; }
+.btn-flat { height: 40px; padding: 0 20px; border-radius: 20px; border: 1px solid var(--outline); }
+.btn-flat-t { font-size: 14px; font-weight: 500; color: var(--accent); }
+.lockscreen { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: var(--surface-emph); z-index: 90; }
+.lock-logo { width: 62px; height: 60px; }
+.lock-title { font-size: 28px; font-weight: 300; color: var(--fg); text-align: center; align-self: stretch; }
+.lock-sub { text-align: center; align-self: stretch; }
+.side-name { font-size: 16px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lockscreen .lock-field { align-self: center; width: 320px; }
+.btn-flat:focus, .btn:focus { outline: none; }
+
+/* ---- WhatsApp Web's "Mídia" panel: over the list and the conversation ---- */
+.mp { position: absolute; left: 76px; top: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column; border-radius: 16px; background: var(--surface); box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.4); z-index: 50; }
+.mp-head { display: flex; flex-direction: row; align-items: center; gap: 24px; height: 72px; padding: 0 16px 0 20px; border-bottom: 1px solid var(--divider); }
+.mp-titles { display: flex; flex-direction: column; }
+.mp-title { font-size: 17px; font-weight: 500; color: var(--fg); }
+.mp-sub { font-size: 14px; color: var(--muted); }
+.mp-tabs { display: flex; flex-direction: row; align-self: stretch; margin-left: 40px; }
+.mp-tab { display: flex; align-items: center; justify-content: center; padding: 0 20px; border-bottom: 3px solid transparent; }
+.mp-tab.on { border-bottom: 3px solid var(--accent); }
+.mp-tab-t { font-size: 15px; color: var(--muted); }
+.mp-tab.on .mp-tab-t { color: var(--fg); }
+.mp-tab:focus { outline: none; }
+.mp-body { display: flex; flex-direction: column; flex: 1; height: 0px; overflow-y: auto; padding-bottom: 20px; }
+.mp-day { display: flex; flex-direction: column; padding: 20px 0 0 0; }
+.mp-day-t { padding: 0 20px; font-size: 16px; font-weight: 500; color: var(--fg); }
+.mp-day-s { padding: 2px 20px 12px 20px; font-size: 14px; color: var(--muted); }
+.mp-grid { display: flex; flex-direction: row; flex-wrap: wrap; gap: 3px; padding: 8px 0 0 0; }
+.mp-tile { position: relative; width: 180px; height: 180px; overflow: hidden; background: var(--highlight); }
+.mp-img { width: 180px; height: 180px; }
+.mp-who { position: absolute; left: 8px; top: 152px; width: 164px; font-size: 14px; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-badge { position: absolute; left: 6px; top: 6px; display: flex; flex-direction: row; align-items: center; gap: 4px; }
+.mp-badge-t { font-size: 12px; color: #FFFFFF; }
+.mp-row { display: flex; flex-direction: row; align-items: center; gap: 16px; height: 64px; padding: 0 20px; }
+.mp-row:hover { background: var(--highlight); }
+.mp-row-ic { width: 28px; height: 28px; }
+.mp-link { color: var(--link); }
+.mp-search { width: 260px; }
+.mp-chips { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 12px 20px 0 20px; }
+.ib.on { background: var(--highlight); }
+
+/* ---- menus (popup windows, outside .app: literal colours, WhatsApp Web's dark menu) ---- */
+.popup { background: #242626; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 8px 0; box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.45); }
+.option { height: 40px; padding: 0 20px; margin: 0 8px; border-radius: 10px; background: transparent; }
+.option:hover { background: rgba(255, 255, 255, 0.1); }
+.option:selected { background: rgba(255, 255, 255, 0.1); }
+.option-label { font-family: "Roboto"; font-size: 15px; color: #FAFAFA; }
+.sep { height: 1px; margin: 6px 16px; background: rgba(255, 255, 255, 0.1); }
+.mhost { display: flex; flex-direction: column; }
+.ro-note { display: flex; align-items: center; justify-content: center; min-height: 62px; padding: 12px 24px; background: var(--surface-emph); }
+.ro-note-t { font-size: 14px; color: var(--muted); text-align: center; }
+.story-layer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; z-index: 85; }
+.expr-layer { position: absolute; left: 16px; bottom: 76px; z-index: 30; }
+.ro-note { flex-direction: row; }
+.ro-accent { color: var(--accent); font-weight: 500; }
+.comm-btn { display: flex; flex-direction: row; align-items: center; gap: 2px; height: 40px; padding: 0 6px; border-radius: 20px; }
+.comm-btn:hover { background: var(--highlight); }
+.av28 { width: 28px; height: 28px; border-radius: 14px; }
+.av-ic16 { width: 16px; height: 16px; }
+.av-img28 { width: 28px; height: 28px; border-radius: 14px; }
+.who-row { display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 2px 4px 6px 2px; }
+.who-col { display: flex; flex-direction: column; }
+.who-line { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+.who-phone { font-size: 12px; color: var(--muted); }
+.who-role { font-size: 12px; color: var(--muted); }
+.av32 { width: 32px; height: 32px; border-radius: 16px; }
+.av-img32 { width: 32px; height: 32px; border-radius: 16px; }
+.rec-wave { flex: 1; width: 0px; height: 32px; display: flex; flex-direction: row; align-items: center; padding: 0 12px; }
+/* a link's large preview (the picture across, then the words) */
+.lpb { display: flex; flex-direction: column; margin: 0 0 6px 0; border-radius: 6px; background: rgba(0, 0, 0, 0.18); overflow: hidden; cursor: pointer; }
+.app.light .lpb { background: rgba(194, 189, 184, 0.2); }
+.lpb-pic { position: relative; }
+.lpb-img { width: 100%; height: 100%; }
+.lpb .lp-text { width: auto; flex: 0; padding: 8px 10px 10px 10px; }
+/* a community's view */
+.cm-row { height: 72px; }
+.av48 { width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; }
+.cm-ann { border-radius: 12px; background: #2B2A54; }
+.cm-avail { background: var(--highlight); }
+.cm-top { display: flex; flex-direction: row; align-items: center; }
+.cm-label { padding: 20px 20px 8px 20px; font-size: 16px; font-weight: 500; color: var(--muted); }
+.cm-err { padding: 12px 20px; }
+.av-img-sq { width: 100%; height: 100%; border-radius: 8px; }
+/* o ∨ do balão, no canto superior direito (por dentro do padding) */
+.chev { position: absolute; right: -4px; top: -3px; width: 28px; height: 24px; }
+.bubble.b-pic .chev, .bubble.b-doc .chev, .bubble.b-rich .chev { right: 2px; top: 2px; }
+/* the pinned message's bar, and the pin dialog */
+.pinbar { display: flex; flex-direction: row; align-items: center; gap: 12px; height: 46px; padding: 0 20px; background: var(--surface-emph); border-bottom: 1px solid var(--divider); }
+.pinbar-t { flex: 1; width: 0px; font-size: 14px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pin-opt { display: flex; flex-direction: row; align-items: center; gap: 16px; height: 40px; }
+.radio { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 10px; border: 2px solid var(--muted); }
+.radio.on { border: 2px solid var(--accent); }
+.radio-dot { width: 10px; height: 10px; border-radius: 5px; background: var(--accent); }
+/* status updates not seen yet: WhatsApp's green dot on the Status icon */
+.nav-dot { position: absolute; left: 28px; top: 2px; width: 10px; height: 10px; border-radius: 5px; background: var(--accent); }
+/* a click outside a panel closes it */
+.backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; z-index: 25; background: transparent; }
+.backdrop-info { z-index: 39; }
+
+/* ---- entrances (WhatsApp Web's: the drawer slides in, popovers rise and fade) ---- */
+@keyframes drawer-in { from { transform: translateX(380px); } to { transform: translateX(0px); } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0px); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zoom-in { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+.info { animation: drawer-in 200ms out-cubic; }
+@keyframes drawer-out { from { transform: translateX(0px); } to { transform: translateX(380px); } }
+.info.info-out { animation: drawer-out 190ms in-cubic; transform: translateX(380px); }
+.expr-layer, .attach-menu { animation: rise-in 150ms out-cubic; }
+.modal { animation: fade-in 150ms ease-out; }
+.mp, .story-layer { animation: zoom-in 180ms out-cubic; }
+.side { animation: fade-in 120ms ease-out; }
+/* the conversation's zoom (Ctrl+wheel): its words scale, the chat list doesn't — one block per step */
+.conv.cz5 .day-t { font-size: 6px; }
+.conv.cz5 .sys-t { font-size: 6.2px; line-height: 10.5px; }
+.conv.cz5 .fwd { font-size: 6.5px; line-height: 10px; }
+.conv.cz5 .who { font-size: 6.4px; line-height: 11px; }
+.conv.cz5 .quote-who { font-size: 6.4px; line-height: 11px; }
+.conv.cz5 .quote-t { font-size: 6.6px; line-height: 10px; }
+.conv.cz5 .body { font-size: 7px; line-height: 10px; }
+.conv.cz5 .stamp { font-size: 5.5px; line-height: 7.5px; }
+.conv.cz5 .reacts-t { font-size: 7px; }
+.conv.cz5 .media-dur-t { font-size: 5.5px; }
+.conv.cz5 .media-meta-t { font-size: 5.5px; }
+.conv.cz5 .doc-name { font-size: 7px; line-height: 10px; }
+.conv.cz5 .doc-info { font-size: 5.5px; line-height: 7.5px; }
+.conv.cz5 .loc-t { font-size: 7px; line-height: 10px; }
+.conv.cz5 .loc-s { font-size: 6.5px; line-height: 9px; }
+.conv.cz5 .vc-name { font-size: 8px; }
+.conv.cz5 .vc-btn-t { font-size: 7px; }
+.conv.cz5 .poll-q { font-size: 7.5px; line-height: 10.5px; }
+.conv.cz5 .poll-hint-t { font-size: 6px; }
+.conv.cz5 .poll-name { font-size: 7px; }
+.conv.cz5 .lp-title { font-size: 7px; line-height: 9.5px; }
+.conv.cz5 .lp-desc { font-size: 6px; line-height: 8px; }
+.conv.cz5 .lp-site { font-size: 6px; line-height: 8px; }
+.conv.cz5 .who-phone { font-size: 6px; }
+.conv.cz5 .who-role { font-size: 6px; }
+.conv.cz6 .day-t { font-size: 7.2px; }
+.conv.cz6 .sys-t { font-size: 7.5px; line-height: 12.6px; }
+.conv.cz6 .fwd { font-size: 7.8px; line-height: 12px; }
+.conv.cz6 .who { font-size: 7.7px; line-height: 13.2px; }
+.conv.cz6 .quote-who { font-size: 7.7px; line-height: 13.2px; }
+.conv.cz6 .quote-t { font-size: 7.9px; line-height: 12px; }
+.conv.cz6 .body { font-size: 8.4px; line-height: 12px; }
+.conv.cz6 .stamp { font-size: 6.6px; line-height: 9px; }
+.conv.cz6 .reacts-t { font-size: 8.4px; }
+.conv.cz6 .media-dur-t { font-size: 6.6px; }
+.conv.cz6 .media-meta-t { font-size: 6.6px; }
+.conv.cz6 .doc-name { font-size: 8.4px; line-height: 12px; }
+.conv.cz6 .doc-info { font-size: 6.6px; line-height: 9px; }
+.conv.cz6 .loc-t { font-size: 8.4px; line-height: 12px; }
+.conv.cz6 .loc-s { font-size: 7.8px; line-height: 10.8px; }
+.conv.cz6 .vc-name { font-size: 9.6px; }
+.conv.cz6 .vc-btn-t { font-size: 8.4px; }
+.conv.cz6 .poll-q { font-size: 9px; line-height: 12.6px; }
+.conv.cz6 .poll-hint-t { font-size: 7.2px; }
+.conv.cz6 .poll-name { font-size: 8.4px; }
+.conv.cz6 .lp-title { font-size: 8.4px; line-height: 11.4px; }
+.conv.cz6 .lp-desc { font-size: 7.2px; line-height: 9.6px; }
+.conv.cz6 .lp-site { font-size: 7.2px; line-height: 9.6px; }
+.conv.cz6 .who-phone { font-size: 7.2px; }
+.conv.cz6 .who-role { font-size: 7.2px; }
+.conv.cz7 .day-t { font-size: 8.4px; }
+.conv.cz7 .sys-t { font-size: 8.8px; line-height: 14.7px; }
+.conv.cz7 .fwd { font-size: 9.1px; line-height: 14px; }
+.conv.cz7 .who { font-size: 9px; line-height: 15.4px; }
+.conv.cz7 .quote-who { font-size: 9px; line-height: 15.4px; }
+.conv.cz7 .quote-t { font-size: 9.2px; line-height: 14px; }
+.conv.cz7 .body { font-size: 9.8px; line-height: 14px; }
+.conv.cz7 .stamp { font-size: 7.7px; line-height: 10.5px; }
+.conv.cz7 .reacts-t { font-size: 9.8px; }
+.conv.cz7 .media-dur-t { font-size: 7.7px; }
+.conv.cz7 .media-meta-t { font-size: 7.7px; }
+.conv.cz7 .doc-name { font-size: 9.8px; line-height: 14px; }
+.conv.cz7 .doc-info { font-size: 7.7px; line-height: 10.5px; }
+.conv.cz7 .loc-t { font-size: 9.8px; line-height: 14px; }
+.conv.cz7 .loc-s { font-size: 9.1px; line-height: 12.6px; }
+.conv.cz7 .vc-name { font-size: 11.2px; }
+.conv.cz7 .vc-btn-t { font-size: 9.8px; }
+.conv.cz7 .poll-q { font-size: 10.5px; line-height: 14.7px; }
+.conv.cz7 .poll-hint-t { font-size: 8.4px; }
+.conv.cz7 .poll-name { font-size: 9.8px; }
+.conv.cz7 .lp-title { font-size: 9.8px; line-height: 13.3px; }
+.conv.cz7 .lp-desc { font-size: 8.4px; line-height: 11.2px; }
+.conv.cz7 .lp-site { font-size: 8.4px; line-height: 11.2px; }
+.conv.cz7 .who-phone { font-size: 8.4px; }
+.conv.cz7 .who-role { font-size: 8.4px; }
+.conv.cz8 .day-t { font-size: 9.6px; }
+.conv.cz8 .sys-t { font-size: 10px; line-height: 16.8px; }
+.conv.cz8 .fwd { font-size: 10.4px; line-height: 16px; }
+.conv.cz8 .who { font-size: 10.2px; line-height: 17.6px; }
+.conv.cz8 .quote-who { font-size: 10.2px; line-height: 17.6px; }
+.conv.cz8 .quote-t { font-size: 10.6px; line-height: 16px; }
+.conv.cz8 .body { font-size: 11.2px; line-height: 16px; }
+.conv.cz8 .stamp { font-size: 8.8px; line-height: 12px; }
+.conv.cz8 .reacts-t { font-size: 11.2px; }
+.conv.cz8 .media-dur-t { font-size: 8.8px; }
+.conv.cz8 .media-meta-t { font-size: 8.8px; }
+.conv.cz8 .doc-name { font-size: 11.2px; line-height: 16px; }
+.conv.cz8 .doc-info { font-size: 8.8px; line-height: 12px; }
+.conv.cz8 .loc-t { font-size: 11.2px; line-height: 16px; }
+.conv.cz8 .loc-s { font-size: 10.4px; line-height: 14.4px; }
+.conv.cz8 .vc-name { font-size: 12.8px; }
+.conv.cz8 .vc-btn-t { font-size: 11.2px; }
+.conv.cz8 .poll-q { font-size: 12px; line-height: 16.8px; }
+.conv.cz8 .poll-hint-t { font-size: 9.6px; }
+.conv.cz8 .poll-name { font-size: 11.2px; }
+.conv.cz8 .lp-title { font-size: 11.2px; line-height: 15.2px; }
+.conv.cz8 .lp-desc { font-size: 9.6px; line-height: 12.8px; }
+.conv.cz8 .lp-site { font-size: 9.6px; line-height: 12.8px; }
+.conv.cz8 .who-phone { font-size: 9.6px; }
+.conv.cz8 .who-role { font-size: 9.6px; }
+.conv.cz9 .day-t { font-size: 10.8px; }
+.conv.cz9 .sys-t { font-size: 11.2px; line-height: 18.9px; }
+.conv.cz9 .fwd { font-size: 11.7px; line-height: 18px; }
+.conv.cz9 .who { font-size: 11.5px; line-height: 19.8px; }
+.conv.cz9 .quote-who { font-size: 11.5px; line-height: 19.8px; }
+.conv.cz9 .quote-t { font-size: 11.9px; line-height: 18px; }
+.conv.cz9 .body { font-size: 12.6px; line-height: 18px; }
+.conv.cz9 .stamp { font-size: 9.9px; line-height: 13.5px; }
+.conv.cz9 .reacts-t { font-size: 12.6px; }
+.conv.cz9 .media-dur-t { font-size: 9.9px; }
+.conv.cz9 .media-meta-t { font-size: 9.9px; }
+.conv.cz9 .doc-name { font-size: 12.6px; line-height: 18px; }
+.conv.cz9 .doc-info { font-size: 9.9px; line-height: 13.5px; }
+.conv.cz9 .loc-t { font-size: 12.6px; line-height: 18px; }
+.conv.cz9 .loc-s { font-size: 11.7px; line-height: 16.2px; }
+.conv.cz9 .vc-name { font-size: 14.4px; }
+.conv.cz9 .vc-btn-t { font-size: 12.6px; }
+.conv.cz9 .poll-q { font-size: 13.5px; line-height: 18.9px; }
+.conv.cz9 .poll-hint-t { font-size: 10.8px; }
+.conv.cz9 .poll-name { font-size: 12.6px; }
+.conv.cz9 .lp-title { font-size: 12.6px; line-height: 17.1px; }
+.conv.cz9 .lp-desc { font-size: 10.8px; line-height: 14.4px; }
+.conv.cz9 .lp-site { font-size: 10.8px; line-height: 14.4px; }
+.conv.cz9 .who-phone { font-size: 10.8px; }
+.conv.cz9 .who-role { font-size: 10.8px; }
+.conv.cz11 .day-t { font-size: 13.2px; }
+.conv.cz11 .sys-t { font-size: 13.8px; line-height: 23.1px; }
+.conv.cz11 .fwd { font-size: 14.3px; line-height: 22px; }
+.conv.cz11 .who { font-size: 14.1px; line-height: 24.2px; }
+.conv.cz11 .quote-who { font-size: 14.1px; line-height: 24.2px; }
+.conv.cz11 .quote-t { font-size: 14.5px; line-height: 22px; }
+.conv.cz11 .body { font-size: 15.4px; line-height: 22px; }
+.conv.cz11 .stamp { font-size: 12.1px; line-height: 16.5px; }
+.conv.cz11 .reacts-t { font-size: 15.4px; }
+.conv.cz11 .media-dur-t { font-size: 12.1px; }
+.conv.cz11 .media-meta-t { font-size: 12.1px; }
+.conv.cz11 .doc-name { font-size: 15.4px; line-height: 22px; }
+.conv.cz11 .doc-info { font-size: 12.1px; line-height: 16.5px; }
+.conv.cz11 .loc-t { font-size: 15.4px; line-height: 22px; }
+.conv.cz11 .loc-s { font-size: 14.3px; line-height: 19.8px; }
+.conv.cz11 .vc-name { font-size: 17.6px; }
+.conv.cz11 .vc-btn-t { font-size: 15.4px; }
+.conv.cz11 .poll-q { font-size: 16.5px; line-height: 23.1px; }
+.conv.cz11 .poll-hint-t { font-size: 13.2px; }
+.conv.cz11 .poll-name { font-size: 15.4px; }
+.conv.cz11 .lp-title { font-size: 15.4px; line-height: 20.9px; }
+.conv.cz11 .lp-desc { font-size: 13.2px; line-height: 17.6px; }
+.conv.cz11 .lp-site { font-size: 13.2px; line-height: 17.6px; }
+.conv.cz11 .who-phone { font-size: 13.2px; }
+.conv.cz11 .who-role { font-size: 13.2px; }
+.conv.cz12 .day-t { font-size: 14.4px; }
+.conv.cz12 .sys-t { font-size: 15px; line-height: 25.2px; }
+.conv.cz12 .fwd { font-size: 15.6px; line-height: 24px; }
+.conv.cz12 .who { font-size: 15.4px; line-height: 26.4px; }
+.conv.cz12 .quote-who { font-size: 15.4px; line-height: 26.4px; }
+.conv.cz12 .quote-t { font-size: 15.8px; line-height: 24px; }
+.conv.cz12 .body { font-size: 16.8px; line-height: 24px; }
+.conv.cz12 .stamp { font-size: 13.2px; line-height: 18px; }
+.conv.cz12 .reacts-t { font-size: 16.8px; }
+.conv.cz12 .media-dur-t { font-size: 13.2px; }
+.conv.cz12 .media-meta-t { font-size: 13.2px; }
+.conv.cz12 .doc-name { font-size: 16.8px; line-height: 24px; }
+.conv.cz12 .doc-info { font-size: 13.2px; line-height: 18px; }
+.conv.cz12 .loc-t { font-size: 16.8px; line-height: 24px; }
+.conv.cz12 .loc-s { font-size: 15.6px; line-height: 21.6px; }
+.conv.cz12 .vc-name { font-size: 19.2px; }
+.conv.cz12 .vc-btn-t { font-size: 16.8px; }
+.conv.cz12 .poll-q { font-size: 18px; line-height: 25.2px; }
+.conv.cz12 .poll-hint-t { font-size: 14.4px; }
+.conv.cz12 .poll-name { font-size: 16.8px; }
+.conv.cz12 .lp-title { font-size: 16.8px; line-height: 22.8px; }
+.conv.cz12 .lp-desc { font-size: 14.4px; line-height: 19.2px; }
+.conv.cz12 .lp-site { font-size: 14.4px; line-height: 19.2px; }
+.conv.cz12 .who-phone { font-size: 14.4px; }
+.conv.cz12 .who-role { font-size: 14.4px; }
+.conv.cz13 .day-t { font-size: 15.6px; }
+.conv.cz13 .sys-t { font-size: 16.2px; line-height: 27.3px; }
+.conv.cz13 .fwd { font-size: 16.9px; line-height: 26px; }
+.conv.cz13 .who { font-size: 16.6px; line-height: 28.6px; }
+.conv.cz13 .quote-who { font-size: 16.6px; line-height: 28.6px; }
+.conv.cz13 .quote-t { font-size: 17.2px; line-height: 26px; }
+.conv.cz13 .body { font-size: 18.2px; line-height: 26px; }
+.conv.cz13 .stamp { font-size: 14.3px; line-height: 19.5px; }
+.conv.cz13 .reacts-t { font-size: 18.2px; }
+.conv.cz13 .media-dur-t { font-size: 14.3px; }
+.conv.cz13 .media-meta-t { font-size: 14.3px; }
+.conv.cz13 .doc-name { font-size: 18.2px; line-height: 26px; }
+.conv.cz13 .doc-info { font-size: 14.3px; line-height: 19.5px; }
+.conv.cz13 .loc-t { font-size: 18.2px; line-height: 26px; }
+.conv.cz13 .loc-s { font-size: 16.9px; line-height: 23.4px; }
+.conv.cz13 .vc-name { font-size: 20.8px; }
+.conv.cz13 .vc-btn-t { font-size: 18.2px; }
+.conv.cz13 .poll-q { font-size: 19.5px; line-height: 27.3px; }
+.conv.cz13 .poll-hint-t { font-size: 15.6px; }
+.conv.cz13 .poll-name { font-size: 18.2px; }
+.conv.cz13 .lp-title { font-size: 18.2px; line-height: 24.7px; }
+.conv.cz13 .lp-desc { font-size: 15.6px; line-height: 20.8px; }
+.conv.cz13 .lp-site { font-size: 15.6px; line-height: 20.8px; }
+.conv.cz13 .who-phone { font-size: 15.6px; }
+.conv.cz13 .who-role { font-size: 15.6px; }
+.conv.cz14 .day-t { font-size: 16.8px; }
+.conv.cz14 .sys-t { font-size: 17.5px; line-height: 29.4px; }
+.conv.cz14 .fwd { font-size: 18.2px; line-height: 28px; }
+.conv.cz14 .who { font-size: 17.9px; line-height: 30.8px; }
+.conv.cz14 .quote-who { font-size: 17.9px; line-height: 30.8px; }
+.conv.cz14 .quote-t { font-size: 18.5px; line-height: 28px; }
+.conv.cz14 .body { font-size: 19.6px; line-height: 28px; }
+.conv.cz14 .stamp { font-size: 15.4px; line-height: 21px; }
+.conv.cz14 .reacts-t { font-size: 19.6px; }
+.conv.cz14 .media-dur-t { font-size: 15.4px; }
+.conv.cz14 .media-meta-t { font-size: 15.4px; }
+.conv.cz14 .doc-name { font-size: 19.6px; line-height: 28px; }
+.conv.cz14 .doc-info { font-size: 15.4px; line-height: 21px; }
+.conv.cz14 .loc-t { font-size: 19.6px; line-height: 28px; }
+.conv.cz14 .loc-s { font-size: 18.2px; line-height: 25.2px; }
+.conv.cz14 .vc-name { font-size: 22.4px; }
+.conv.cz14 .vc-btn-t { font-size: 19.6px; }
+.conv.cz14 .poll-q { font-size: 21px; line-height: 29.4px; }
+.conv.cz14 .poll-hint-t { font-size: 16.8px; }
+.conv.cz14 .poll-name { font-size: 19.6px; }
+.conv.cz14 .lp-title { font-size: 19.6px; line-height: 26.6px; }
+.conv.cz14 .lp-desc { font-size: 16.8px; line-height: 22.4px; }
+.conv.cz14 .lp-site { font-size: 16.8px; line-height: 22.4px; }
+.conv.cz14 .who-phone { font-size: 16.8px; }
+.conv.cz14 .who-role { font-size: 16.8px; }
+.conv.cz15 .day-t { font-size: 18px; }
+.conv.cz15 .sys-t { font-size: 18.8px; line-height: 31.5px; }
+.conv.cz15 .fwd { font-size: 19.5px; line-height: 30px; }
+.conv.cz15 .who { font-size: 19.2px; line-height: 33px; }
+.conv.cz15 .quote-who { font-size: 19.2px; line-height: 33px; }
+.conv.cz15 .quote-t { font-size: 19.8px; line-height: 30px; }
+.conv.cz15 .body { font-size: 21px; line-height: 30px; }
+.conv.cz15 .stamp { font-size: 16.5px; line-height: 22.5px; }
+.conv.cz15 .reacts-t { font-size: 21px; }
+.conv.cz15 .media-dur-t { font-size: 16.5px; }
+.conv.cz15 .media-meta-t { font-size: 16.5px; }
+.conv.cz15 .doc-name { font-size: 21px; line-height: 30px; }
+.conv.cz15 .doc-info { font-size: 16.5px; line-height: 22.5px; }
+.conv.cz15 .loc-t { font-size: 21px; line-height: 30px; }
+.conv.cz15 .loc-s { font-size: 19.5px; line-height: 27px; }
+.conv.cz15 .vc-name { font-size: 24px; }
+.conv.cz15 .vc-btn-t { font-size: 21px; }
+.conv.cz15 .poll-q { font-size: 22.5px; line-height: 31.5px; }
+.conv.cz15 .poll-hint-t { font-size: 18px; }
+.conv.cz15 .poll-name { font-size: 21px; }
+.conv.cz15 .lp-title { font-size: 21px; line-height: 28.5px; }
+.conv.cz15 .lp-desc { font-size: 18px; line-height: 24px; }
+.conv.cz15 .lp-site { font-size: 18px; line-height: 24px; }
+.conv.cz15 .who-phone { font-size: 18px; }
+.conv.cz15 .who-role { font-size: 18px; }
+.conv.cz16 .day-t { font-size: 19.2px; }
+.conv.cz16 .sys-t { font-size: 20px; line-height: 33.6px; }
+.conv.cz16 .fwd { font-size: 20.8px; line-height: 32px; }
+.conv.cz16 .who { font-size: 20.5px; line-height: 35.2px; }
+.conv.cz16 .quote-who { font-size: 20.5px; line-height: 35.2px; }
+.conv.cz16 .quote-t { font-size: 21.1px; line-height: 32px; }
+.conv.cz16 .body { font-size: 22.4px; line-height: 32px; }
+.conv.cz16 .stamp { font-size: 17.6px; line-height: 24px; }
+.conv.cz16 .reacts-t { font-size: 22.4px; }
+.conv.cz16 .media-dur-t { font-size: 17.6px; }
+.conv.cz16 .media-meta-t { font-size: 17.6px; }
+.conv.cz16 .doc-name { font-size: 22.4px; line-height: 32px; }
+.conv.cz16 .doc-info { font-size: 17.6px; line-height: 24px; }
+.conv.cz16 .loc-t { font-size: 22.4px; line-height: 32px; }
+.conv.cz16 .loc-s { font-size: 20.8px; line-height: 28.8px; }
+.conv.cz16 .vc-name { font-size: 25.6px; }
+.conv.cz16 .vc-btn-t { font-size: 22.4px; }
+.conv.cz16 .poll-q { font-size: 24px; line-height: 33.6px; }
+.conv.cz16 .poll-hint-t { font-size: 19.2px; }
+.conv.cz16 .poll-name { font-size: 22.4px; }
+.conv.cz16 .lp-title { font-size: 22.4px; line-height: 30.4px; }
+.conv.cz16 .lp-desc { font-size: 19.2px; line-height: 25.6px; }
+.conv.cz16 .lp-site { font-size: 19.2px; line-height: 25.6px; }
+.conv.cz16 .who-phone { font-size: 19.2px; }
+.conv.cz16 .who-role { font-size: 19.2px; }
+.conv.cz17 .day-t { font-size: 20.4px; }
+.conv.cz17 .sys-t { font-size: 21.2px; line-height: 35.7px; }
+.conv.cz17 .fwd { font-size: 22.1px; line-height: 34px; }
+.conv.cz17 .who { font-size: 21.8px; line-height: 37.4px; }
+.conv.cz17 .quote-who { font-size: 21.8px; line-height: 37.4px; }
+.conv.cz17 .quote-t { font-size: 22.4px; line-height: 34px; }
+.conv.cz17 .body { font-size: 23.8px; line-height: 34px; }
+.conv.cz17 .stamp { font-size: 18.7px; line-height: 25.5px; }
+.conv.cz17 .reacts-t { font-size: 23.8px; }
+.conv.cz17 .media-dur-t { font-size: 18.7px; }
+.conv.cz17 .media-meta-t { font-size: 18.7px; }
+.conv.cz17 .doc-name { font-size: 23.8px; line-height: 34px; }
+.conv.cz17 .doc-info { font-size: 18.7px; line-height: 25.5px; }
+.conv.cz17 .loc-t { font-size: 23.8px; line-height: 34px; }
+.conv.cz17 .loc-s { font-size: 22.1px; line-height: 30.6px; }
+.conv.cz17 .vc-name { font-size: 27.2px; }
+.conv.cz17 .vc-btn-t { font-size: 23.8px; }
+.conv.cz17 .poll-q { font-size: 25.5px; line-height: 35.7px; }
+.conv.cz17 .poll-hint-t { font-size: 20.4px; }
+.conv.cz17 .poll-name { font-size: 23.8px; }
+.conv.cz17 .lp-title { font-size: 23.8px; line-height: 32.3px; }
+.conv.cz17 .lp-desc { font-size: 20.4px; line-height: 27.2px; }
+.conv.cz17 .lp-site { font-size: 20.4px; line-height: 27.2px; }
+.conv.cz17 .who-phone { font-size: 20.4px; }
+.conv.cz17 .who-role { font-size: 20.4px; }
+.conv.cz18 .day-t { font-size: 21.6px; }
+.conv.cz18 .sys-t { font-size: 22.5px; line-height: 37.8px; }
+.conv.cz18 .fwd { font-size: 23.4px; line-height: 36px; }
+.conv.cz18 .who { font-size: 23px; line-height: 39.6px; }
+.conv.cz18 .quote-who { font-size: 23px; line-height: 39.6px; }
+.conv.cz18 .quote-t { font-size: 23.8px; line-height: 36px; }
+.conv.cz18 .body { font-size: 25.2px; line-height: 36px; }
+.conv.cz18 .stamp { font-size: 19.8px; line-height: 27px; }
+.conv.cz18 .reacts-t { font-size: 25.2px; }
+.conv.cz18 .media-dur-t { font-size: 19.8px; }
+.conv.cz18 .media-meta-t { font-size: 19.8px; }
+.conv.cz18 .doc-name { font-size: 25.2px; line-height: 36px; }
+.conv.cz18 .doc-info { font-size: 19.8px; line-height: 27px; }
+.conv.cz18 .loc-t { font-size: 25.2px; line-height: 36px; }
+.conv.cz18 .loc-s { font-size: 23.4px; line-height: 32.4px; }
+.conv.cz18 .vc-name { font-size: 28.8px; }
+.conv.cz18 .vc-btn-t { font-size: 25.2px; }
+.conv.cz18 .poll-q { font-size: 27px; line-height: 37.8px; }
+.conv.cz18 .poll-hint-t { font-size: 21.6px; }
+.conv.cz18 .poll-name { font-size: 25.2px; }
+.conv.cz18 .lp-title { font-size: 25.2px; line-height: 34.2px; }
+.conv.cz18 .lp-desc { font-size: 21.6px; line-height: 28.8px; }
+.conv.cz18 .lp-site { font-size: 21.6px; line-height: 28.8px; }
+.conv.cz18 .who-phone { font-size: 21.6px; }
+.conv.cz18 .who-role { font-size: 21.6px; }
+.conv.cz19 .day-t { font-size: 22.8px; }
+.conv.cz19 .sys-t { font-size: 23.8px; line-height: 39.9px; }
+.conv.cz19 .fwd { font-size: 24.7px; line-height: 38px; }
+.conv.cz19 .who { font-size: 24.3px; line-height: 41.8px; }
+.conv.cz19 .quote-who { font-size: 24.3px; line-height: 41.8px; }
+.conv.cz19 .quote-t { font-size: 25.1px; line-height: 38px; }
+.conv.cz19 .body { font-size: 26.6px; line-height: 38px; }
+.conv.cz19 .stamp { font-size: 20.9px; line-height: 28.5px; }
+.conv.cz19 .reacts-t { font-size: 26.6px; }
+.conv.cz19 .media-dur-t { font-size: 20.9px; }
+.conv.cz19 .media-meta-t { font-size: 20.9px; }
+.conv.cz19 .doc-name { font-size: 26.6px; line-height: 38px; }
+.conv.cz19 .doc-info { font-size: 20.9px; line-height: 28.5px; }
+.conv.cz19 .loc-t { font-size: 26.6px; line-height: 38px; }
+.conv.cz19 .loc-s { font-size: 24.7px; line-height: 34.2px; }
+.conv.cz19 .vc-name { font-size: 30.4px; }
+.conv.cz19 .vc-btn-t { font-size: 26.6px; }
+.conv.cz19 .poll-q { font-size: 28.5px; line-height: 39.9px; }
+.conv.cz19 .poll-hint-t { font-size: 22.8px; }
+.conv.cz19 .poll-name { font-size: 26.6px; }
+.conv.cz19 .lp-title { font-size: 26.6px; line-height: 36.1px; }
+.conv.cz19 .lp-desc { font-size: 22.8px; line-height: 30.4px; }
+.conv.cz19 .lp-site { font-size: 22.8px; line-height: 30.4px; }
+.conv.cz19 .who-phone { font-size: 22.8px; }
+.conv.cz19 .who-role { font-size: 22.8px; }
+.conv.cz20 .day-t { font-size: 24px; }
+.conv.cz20 .sys-t { font-size: 25px; line-height: 42px; }
+.conv.cz20 .fwd { font-size: 26px; line-height: 40px; }
+.conv.cz20 .who { font-size: 25.6px; line-height: 44px; }
+.conv.cz20 .quote-who { font-size: 25.6px; line-height: 44px; }
+.conv.cz20 .quote-t { font-size: 26.4px; line-height: 40px; }
+.conv.cz20 .body { font-size: 28px; line-height: 40px; }
+.conv.cz20 .stamp { font-size: 22px; line-height: 30px; }
+.conv.cz20 .reacts-t { font-size: 28px; }
+.conv.cz20 .media-dur-t { font-size: 22px; }
+.conv.cz20 .media-meta-t { font-size: 22px; }
+.conv.cz20 .doc-name { font-size: 28px; line-height: 40px; }
+.conv.cz20 .doc-info { font-size: 22px; line-height: 30px; }
+.conv.cz20 .loc-t { font-size: 28px; line-height: 40px; }
+.conv.cz20 .loc-s { font-size: 26px; line-height: 36px; }
+.conv.cz20 .vc-name { font-size: 32px; }
+.conv.cz20 .vc-btn-t { font-size: 28px; }
+.conv.cz20 .poll-q { font-size: 30px; line-height: 42px; }
+.conv.cz20 .poll-hint-t { font-size: 24px; }
+.conv.cz20 .poll-name { font-size: 28px; }
+.conv.cz20 .lp-title { font-size: 28px; line-height: 38px; }
+.conv.cz20 .lp-desc { font-size: 24px; line-height: 32px; }
+.conv.cz20 .lp-site { font-size: 24px; line-height: 32px; }
+.conv.cz20 .who-phone { font-size: 24px; }
+.conv.cz20 .who-role { font-size: 24px; }
+/* the unread mark and the ⌄⌄ button (WhatsApp Web) */
+.unread-sep { display: flex; flex-direction: row; justify-content: center; padding: 8px 0; margin: 4px 0 8px 0; background: rgba(255, 255, 255, 0.04); }
+.app.light .unread-sep { background: rgba(0, 0, 0, 0.04); }
+.unread-t { color: var(--fg); }
+.down-wrap { position: absolute; right: 20px; bottom: 84px; width: 42px; height: 42px; z-index: 20; }
+.down-fab { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 21px; background: var(--composer); box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4); }
+.down-fab:focus { outline: none; }
+.down-badge { position: absolute; left: 22px; top: -8px; display: flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--accent); }
+.down-badge-t { font-size: 12px; font-weight: 500; color: var(--on-accent); }
+
+/* the theme picker in the profile panel */
+.theme-cur { font-size: 14px; color: var(--muted); }
+.theme-list { display: flex; flex-direction: column; padding: 0 16px 8px 56px; }
+
+/* a business message's footer line and buttons (under the text, inside the bubble) */
+.msg-footer { padding: 0 9px 6px 9px; font-size: 13px; color: var(--muted); }
+.msg-btns { display: flex; flex-direction: column; margin-top: 2px; }
+.msg-btn { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; height: 40px; min-width: 220px; border-top: 1px solid var(--divider); cursor: pointer; }
+.msg-btn:hover { background: var(--highlight); }
+.msg-btn.msg-row { justify-content: flex-start; padding-left: 24px; }
+.msg-btn-ic { width: 18px; height: 18px; }
+.msg-btn-t { font-size: 14px; font-weight: 500; color: var(--link); }
+
+/* the header's second line with the typing dots before it */
+.conv-sub-row { display: flex; flex-direction: row; align-items: center; gap: 4px; }
+/* the list's typing dots: the box gives the width (a recycled row keeps its item's first size) */
+.tdots { width: 0px; height: 20px; }
+.tdots.on { width: 26px; }
+
+/* the status list's "Silenciados": a header that opens it, its rows dimmed */
+.side-label-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding-right: 16px; cursor: pointer; }
+.side-label-ic { width: 20px; height: 20px; }
+.prow.prow-muted { opacity: 0.6; }
+
+/* selecting messages: the header bar, the per-message checkbox, the clickable row */
+.conv-head.sel-head { position: absolute; left: 0px; top: 0px; width: 100%; z-index: 3; gap: 16px; }
+.sel-count { flex: 1; font-size: 16px; color: var(--fg); }
+.mrow { position: relative; }
+.mrow.picking { cursor: pointer; }
+.mrow.picking:hover { background: var(--highlight); }
+.msg-check { display: flex; align-items: center; padding: 0 14px 0 6px; }
+.fwd-check-ic { width: 16px; height: 16px; }
+.sel-overlay { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; z-index: 20; cursor: pointer; }
+.del-btns { flex-wrap: wrap; }
+
+/* a 1:1 contact not in the address book: a small tag before the name */
+.conv-name-row { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+.unknown-tag { display: flex; align-items: center; padding: 1px 6px; border-radius: 4px; background: var(--highlight); flex: none; }
+.unknown-tag-t { font-size: 11px; color: var(--muted); }
+.cell-unknown { margin-right: 6px; }
+
+/* "Pesquisar mensagens": one row per hit (when, who: the line) */
+.hit { padding: 12px 20px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.hit:hover { background: var(--highlight); }
+.hit-when { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.hit-text { font-size: 14px; color: var(--fg); }
+.hit-none { padding: 24px 20px; font-size: 14px; color: var(--muted); text-align: center; }
+
+/* search results in the list's place (Search.run) */
+.sres-scope { display: flex; flex-direction: row; align-items: center; padding: 8px 12px 8px 20px; background: var(--highlight); }
+.sres-scope-t { flex: 1; font-size: 13px; color: var(--accent); }
+.sres-h { padding: 14px 20px 6px 20px; font-size: 15px; color: var(--accent); }
+.sres-row { display: flex; flex-direction: row; align-items: center; padding: 10px 16px; gap: 12px; cursor: pointer; }
+.sres-row:hover { background: var(--highlight); }
+.sres-col { display: flex; flex-direction: column; flex: 1; width: 0px; }
+.sres-top { display: flex; flex-direction: row; align-items: center; margin-bottom: 2px; }
+.sres-name { flex: 1; font-size: 16px; color: var(--fg); }
+.sres-when { font-size: 12px; color: var(--muted); }
+/* a search hit's bubble, flashing */
+.flash-ov { position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; border-radius: 8px; background: rgba(33, 192, 99, 0.35); }
+
+/* SMS (KDE Connect) */
+.head-space { flex-grow: 1; }
+.sms-err { padding: 4px 20px; }
+/* a run of stickers from one sender: side by side, wrapping */
+.st-run { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; }
+.st-run.me { justify-content: flex-end; }
+.st-item { position: relative; }

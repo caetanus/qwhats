@@ -1,0 +1,7 @@
+{
+	"name": "qwhats-dcore",
+	"description": "QWhats' WhatsApp core in D: the Go qwhats-core's JSON-RPC on stdio, over our own protocol stack",
+	"targetType": "executable",
+	"targetPath": "/home/caetano/.cache/qml-whats-build/qwhats-dcore",
+	"dependencies": { "wa": { "path": ".." }, "kc": { "path": "../../kc" } }
+}

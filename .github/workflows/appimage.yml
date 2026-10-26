@@ -40,18 +40,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: qt
-          key: qt-6.11.2-linux_gcc_64-webengine-multimedia-v1
+          key: qt-6.11.2-linux_gcc_64-webengine-multimedia-location-pdf-v2
 
       - name: Qt 6.11.2 (aqtinstall)
         if: steps.qt-cache.outputs.cache-hit != 'true'
         run: >
           docker run --rm -v "$PWD/qt:/qt" qwhats-manylinux
           aqt install-qt linux desktop 6.11.2 linux_gcc_64 -O /qt
-          -m qtwebengine qtwebchannel qtpositioning qtmultimedia
+          -m qtwebengine qtwebchannel qtpositioning qtmultimedia qtlocation qtpdf qtimageformats qtserialport
 
       - name: Build libsolidqml, the binding, QWhats and the AppImage
         run: >
-          docker run --rm -e JOBS=4
+          docker run --rm -e JOBS=4 -e WEB=1
           -v "$PWD/qml-whats:/src/qml-whats" -v "$PWD/solid-qml-native:/src/solid-qml-native"
           -v "$PWD/qt:/qt" -v "$PWD/work:/work" -v "$PWD/out:/out" -v "$PWD/tools:/tools"
           qwhats-manylinux bash /src/qml-whats/tools/manylinux/inside.sh
@@ -59,15 +59,15 @@ jobs:
       - name: Upload the AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: QWhats-x86_64.AppImage
-          path: out/QWhats-x86_64.AppImage
+          name: QWhats-Web-x86_64.AppImage
+          path: out/QWhats-Web-x86_64.AppImage
           if-no-files-found: error
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: out/QWhats-x86_64.AppImage
+          files: out/QWhats-Web-x86_64.AppImage
           generate_release_notes: true
 
       - name: Publish the continuous build

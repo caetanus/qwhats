@@ -1,0 +1,12 @@
+{
+	"name": "kc",
+	"description": "SMS/MMS for QWhats through KDE Connect's daemon (kdeconnectd) on the session D-Bus: the phone pairs with KDE Connect, we read and send its conversations",
+	"license": "MIT",
+	"targetType": "library",
+	"sourcePaths": ["source"],
+	"importPaths": ["source"],
+	"dependencies": {
+		"vibe-core": "~>2.0"
+	},
+	"libs": ["libsystemd"]
+}

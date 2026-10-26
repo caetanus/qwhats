@@ -26,6 +26,13 @@ Build reggaeBuild() {
         all ~= solidQmlApp(s, "qml-whats-" ~ dc, buildPath(here, "source", "app.d"), dc,
                            appSources(here), [buildPath(here, "source")], [],
                            ["-J" ~ buildPath(here, "assets", "icons"), "-J" ~ buildPath(here, "assets"), "-L-lsystemd"]);
+    // QWhats native (docs/native-client.md): the solid-qml UI, the Go core, the D host.
+    all ~= solidQmlUi(s, "ui-native", buildPath(here, "ui", "native", "main.tsx"), buildPath(here, "qml-native"));
+    all ~= Target.phony("core", "cd " ~ buildPath(here, "core") ~ " && CGO_ENABLED=0 go build -trimpath -o "
+                        ~ buildPath(here, "build-core", "qwhats-core") ~ " .", []);
+    all ~= solidQmlApp(s, "qwhats-native-ldc2", buildPath(here, "source", "native", "app.d"), "ldc2",
+                       appSources(here), [buildPath(here, "source")], [],
+                       ["-J" ~ buildPath(here, "assets", "icons"), "-J" ~ buildPath(here, "assets"), "-L-lsystemd"]);
     all ~= Target.phony("unittest", "cd " ~ here
                         ~ " && ldc2 -unittest -main -run source/qmlwhats/settings.d"
                         ~ " && ldc2 -unittest -main -run source/qmlwhats/env.d"

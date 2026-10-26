@@ -31,7 +31,13 @@ git clone -q --local --branch widgets "$lab/solid-qml-native" "$S/solid-qml-nati
 (cd "$S/solid-qml-native" && git -c protocol.file.allow=always submodule -q update --init \
     --reference "$lab/solid-qml-native/vendor/qml-css-engine")
 mkdir -p "$S/qml-whats"
-cp -r "$here/source" "$here/assets" "$here/ui" "$here/tools" "$here/third_party" "$S/qml-whats/"
+cp -r "$here/source" "$here/assets" "$here/ui" "$here/tools" "$here/third_party" "$here/wa" "$here/kc" "$S/qml-whats/"
+# not the local build products of the D core (static libraries, test runners, dub's caches)
+rm -rf "$S"/qml-whats/{wa,kc}/{*.a,*-test-library,.dub} "$S"/qml-whats/wa/{dcore,probe,vectool}/.dub
+# the native UI is generated here (the transpiler runs on Node, which the build image has not)
+(cd "$here" && ./build ui-native >/dev/null) || { echo "./build ui-native failed" >&2; exit 1; }
+cp -r "$here/qml-native" "$S/qml-whats/"
+[ -e "$here/assets/wa/icons/chats.svg" ] || { echo "no assets/wa (tools/wa-icons.mjs): the native UI would have no icons" >&2; exit 1; }
 echo "sources: solid-qml-native $(git -C "$S/solid-qml-native" log --oneline -1 | cut -c1-50)"
 
 # ---- the build image (once; rebuilt when its Containerfile changes) ----------------------------------
@@ -40,9 +46,11 @@ if ! podman image exists "$IMAGE" || [ "$here/tools/manylinux/Containerfile" -nt
 fi
 
 # ---- Qt 6.11.2 (once) and linuxdeploy -------------------------------------------------------------
-if [ ! -e "$M/qt/6.11.2/gcc_64/lib/libQt6WebEngineCore.so.6" ]; then
+# (QtLocation: the location bubble's map; QtPdf: the PDF preview; qtimageformats: WebP stickers)
+if [ ! -e "$M/qt/6.11.2/gcc_64/lib/libQt6WebEngineCore.so.6" ] || [ ! -e "$M/qt/6.11.2/gcc_64/lib/libQt6SerialPort.so.6" ]; then
     podman run --rm -v "$M/qt:/qt:Z" "$IMAGE" \
-        aqt install-qt linux desktop 6.11.2 linux_gcc_64 -O /qt -m qtwebengine qtwebchannel qtpositioning qtmultimedia
+        aqt install-qt linux desktop 6.11.2 linux_gcc_64 -O /qt \
+        -m qtwebengine qtwebchannel qtpositioning qtmultimedia qtlocation qtpdf qtimageformats qtserialport
 fi
 for t in linuxdeploy linuxdeploy-plugin-qt; do
     f=$M/tools/$t-x86_64.AppImage

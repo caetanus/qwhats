@@ -6,6 +6,9 @@ RUN dnf -y -q install clang lld systemd-devel librsvg2-tools file xz git \
         wayland-devel dbus-devel nss nspr alsa-lib libXcomposite libXdamage libXrandr libXtst libxshmfence \
         libxkbfile libXext libXfixes cups-libs pulseaudio-libs glib2 at-spi2-atk at-spi2-core mesa-libgbm \
         libdrm expat && dnf clean all
+# the D core (qwhats-dcore): libsodium (EPEL), sqlite, OpenSSL 3, libqrencode (the pairing QR)
+RUN dnf -y -q install epel-release && dnf -y -q install libsodium-devel sqlite-devel openssl-devel qrencode-devel \
+    && dnf clean all
 RUN /opt/python/cp312-cp312/bin/pip install -q meson ninja aqtinstall
 RUN curl -sSL https://github.com/ldc-developers/ldc/releases/download/v1.43.0/ldc2-1.43.0-linux-x86_64.tar.xz | tar -xJ -C /opt \
     && mv /opt/ldc2-1.43.0-linux-x86_64 /opt/ldc

@@ -8,12 +8,16 @@ import std.socket;
 
 final class SingleInstance {
     private Socket listener;
+    private string base;
+
+    /// `base` names the app: the WebEngine client and the native one each keep their own window.
+    this(string base = "qml-whats") { this.base = base; }
 
     /// The socket name, per user (two users on one machine each get their own window).
-    static string name() {
+    string name() {
         import core.sys.posix.unistd : getuid;
         import std.conv : to;
-        return "\0qml-whats-" ~ getuid().to!string;
+        return "\0" ~ base ~ "-" ~ getuid().to!string;
     }
 
     /// Try to be the first instance. False: another one owns the name (it was told to raise).
@@ -57,7 +61,7 @@ final class SingleInstance {
             scope (exit) c.close();
             c.blocking = true;
             c.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!"msecs"(200));
-            char[256] buf;
+            char[4096] buf;   // a whatsapp:// URL with a prefilled text can be long
             const n = c.receive(buf[]);
             if (n > 0) {
                 import std.string : strip;

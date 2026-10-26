@@ -75,8 +75,31 @@ if ! step binding; then
     done_ binding
 fi
 
-# ---- the app ---------------------------------------------------------------------------------------
-if ! step app; then
+# ---- the native app (qwhats-native-ldc2) and its D core (qwhats-dcore) --------------------------------
+# Only with its UI generated (qml-native/, by tools/manylinux.sh on the host) and WhatsApp Web's artwork
+# (assets/wa/, not in git): a CI checkout has neither, and builds the web app (WEB=1).
+NATIVE=0
+[ -e "$APP/qml-native/App.generated.qml" ] && [ -e "$APP/assets/wa/icons/chats.svg" ] && NATIVE=1
+if [ "$NATIVE" = 1 ] && ! step native; then
+    ldc2 -O -release -of="$APP/qwhats-native-ldc2" "$APP/source/native/app.d" "$SQD/source/solidqml/host.d" \
+        $(find "$APP/source/qmlwhats" -name "*.d" | sort) \
+        -I"$SQD/source" -I"$APP/source" -I"$GEN" -J"$APP/assets/icons" -J"$APP/assets" \
+        -L--gc-sections -L--as-needed -L--start-group -L="$B/libbinding_ldc2.a" -L="$B/libshims.a" -L--end-group \
+        -L-L"$W/solidqml" -L-lsolidqml $(pkg-config --libs $MODS | sed -E 's/(^| )-L/\1-L-L/g; s/(^| )-l/\1-L-l/g') \
+        -L-lstdc++ -L-lsystemd
+    done_ native
+fi
+if [ "$NATIVE" = 1 ] && ! step dcore; then
+    # the local dub.json writes into the developer's cache; here: beside it
+    sed -i -E 's#"targetPath": *"[^"]*"#"targetPath": "bin"#' "$APP/wa/dcore/dub.json"
+    export DUB_HOME=$W/dub
+    (cd "$APP/wa/dcore" && dub build -q --compiler=ldc2 -b release) >"$W/dcore-build.log" 2>&1 \
+        || { grep -vE "Deprecation|^ +" "$W/dcore-build.log" | tail -30; exit 1; }
+    done_ dcore
+fi
+
+# ---- the web app (QtWebEngine), only with WEB=1 -------------------------------------------------------
+if [ "${WEB:-0}" = 1 ] && ! step app; then
     ldc2 -O -release -of="$APP/qml-whats-ldc2" "$APP/source/app.d" "$SQD/source/solidqml/host.d" "$APP"/source/qmlwhats/*.d \
         -I"$SQD/source" -I"$APP/source" -I"$GEN" -J"$APP/assets/icons" -J"$APP/assets" \
         -L--gc-sections -L--as-needed -L--start-group -L="$B/libbinding_ldc2.a" -L="$B/libshims.a" -L--end-group \
@@ -86,7 +109,7 @@ if ! step app; then
     done_ app
 fi
 
-# ---- the AppImage (tools/appimage.sh, with this Qt) --------------------------------------------------
+# ---- the AppImages (tools/appimage-native.sh, tools/appimage.sh with WEB=1), with this Qt --------------
 [ -x "$TOOLS/appimagetool" ] || {
     curl -sSL -o "$TOOLS/appimagetool" https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
     chmod +x "$TOOLS/appimagetool"; }
@@ -99,6 +122,13 @@ for t in linuxdeploy linuxdeploy-plugin-qt; do
     cp -f "$TOOLS/$t-x86_64.AppImage" "$W/cache/qml-whats-build/tools/"
 done
 export LD_LIBRARY_PATH=$Q/lib:$W/solidqml   # linuxdeploy reads the binary's ldd
-(cd "$APP" && ./tools/appimage.sh "$W/solidqml")
-cp "$APP/QWhats-x86_64.AppImage" "$OUT/QWhats-x86_64.AppImage"
-echo "== AppImage: $OUT/QWhats-x86_64.AppImage"
+if [ "$NATIVE" = 1 ]; then
+    (cd "$APP" && DCORE="$APP/wa/dcore/bin/qwhats-dcore" ./tools/appimage-native.sh "$W/solidqml")
+    cp "$APP/QWhats-x86_64.AppImage" "$OUT/QWhats-x86_64.AppImage"
+    echo "== AppImage: $OUT/QWhats-x86_64.AppImage"
+fi
+if [ "${WEB:-0}" = 1 ]; then
+    (cd "$APP" && OUT_NAME=QWhats-Web-x86_64.AppImage ./tools/appimage.sh "$W/solidqml")
+    cp "$APP/QWhats-Web-x86_64.AppImage" "$OUT/"
+    echo "== AppImage: $OUT/QWhats-Web-x86_64.AppImage"
+fi

@@ -8,3 +8,19 @@
 *.o
 compile_commands.json
 /QWhats-x86_64.AppImage*
+/qml-native/
+/build-core/
+/qwhats-native-ldc2*
+
+# WhatsApp artwork (tools/wa-icons.mjs): theirs, not ours to publish
+/assets/wa/
+
+# build products of the D core and the Go vector tools
+*.a
+*-test-library
+.dub/
+/core/payloadvec
+/core/signalsend
+__pycache__/
+# WhatsApp's own sounds (the voice-note chimes): theirs, like assets/wa/
+/ui/native/chime*.ogg

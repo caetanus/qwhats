@@ -1,0 +1,28 @@
+{
+	"name": "wa",
+	"description": "WhatsApp's protocol for QWhats, written after WhatsApp Web's own code: binary XML (WAP), Noise transport, Signal, media, app state",
+	"license": "MIT",
+	"targetType": "library",
+	"sourcePaths": [
+		"source"
+	],
+	"importPaths": [
+		"source"
+	],
+	"stringImportPaths": [
+		"tests"
+	],
+	"dependencies": {
+		"vibe-core": "~>2.0",
+		"vibe-http": "~>1.4",
+		"libsodiumd": "~>0.2",
+		"openssl": "~>3.4"
+	},
+	"libs": [
+		"sodium",
+		"ssl",
+		"crypto",
+		"sqlite3",
+		"qrencode"
+	]
+}

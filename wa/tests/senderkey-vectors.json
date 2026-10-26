@@ -1,0 +1,22 @@
+{
+  "note": "libsignal v0.2.2 sender keys; messages delivered out of order",
+  "skdm": "3308a89f991310001a206b73ebf2621a624d2eecc3e07deffdd3cb8a946f0cef2df663d1ca437bc68115222105151b51f9310a2c3dac5bfcc2cbd751b804033be2afaa2afbd28f31a99a903d1f",
+  "messages": [
+    {
+      "serialized": "3308a89f991310021a10b5838b05c367385ad233b4b58455c961783e18a4d3e46ff4284bd08055a686e30572d5b204ed3a5c32e35cc276f4c1065fa3969a443e60502dc948cfbb7742f4b036b143ec12ad9415015e1dc97f8501",
+      "plaintext": "grupo dois"
+    },
+    {
+      "serialized": "3308a89f991310001a10e8a687526e7b55a41c10194ef5e4bb293b48385498b246c0fab476d74aa03ca5fc3277fb01a086bc4519eecb214c964f64c51e2c24a062167439dda65a94cd3063fedd6551fbd44c2b6ee7a9e2c17105",
+      "plaintext": "grupo zero"
+    },
+    {
+      "serialized": "3308a89f991310031a10bc0ac6009da288eddca6e537a9dfd1eb063fdb75d20a0f8578539934be2a7cd302a6bcdc62e461dbad57025c2d427e224432890ef347d2cddbe9fd7625de9c93cedc578dca408f1ac26d6bcac9019402",
+      "plaintext": "grupo tres"
+    },
+    {
+      "serialized": "3308a89f991310011a10c0c6b87c790fc3c509b3b7e88a237a31f89623c843470e77bb4c593b1bda9185fb28799994335ded46852d5c1f2c4a55484f38ea1a8813abaff52e81d0b021c054b6cd7d998c7365987d217b123ab20f",
+      "plaintext": "grupo um"
+    }
+  ]
+}
