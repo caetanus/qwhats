@@ -84,4 +84,4 @@ jobs:
           else
             gh release create continuous --prerelease --title "QWhats — build contínuo" --notes "$notes"
           fi
-          gh release upload continuous ../out/QWhats-x86_64.AppImage --clobber
+          gh release upload continuous ../out/QWhats-Web-x86_64.AppImage --clobber
