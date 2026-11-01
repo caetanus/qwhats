@@ -169,9 +169,21 @@ final class Ingest {
         bool mentionsMe;
         if (auto ml = "mentionedJidList" in n) foreach (j; ml.array) if (j.str == me) mentionsMe = true;
         cs.bumpChat(n, true, mentionsMe);
+        // our own message from another device (the phone): replying reads the chat, as WhatsApp
+        // counts it — what came before is no longer unread
+        if (info.isFromMe) readUpTo(remote, info.t);
         emit("Msg:add", handOut(n));
         emitChat(remote);
         return true;
+    }
+
+    /// readUpTo: the chat read up to `t` here (another of our devices read it, or we wrote in it): no
+    /// unread count, no unread mark, and a later copy of an older message (history) stays read
+    void readUpTo(string remote, long t) {
+        cs.markRead(account, remote, t);
+        cs.setChat(account, remote, "unreadCount", 0L);
+        cs.setChat(account, remote, "unreadMentionCount", 0L);
+        cs.setChat(account, remote, "markedUnread", false);
     }
 
     // ── history ──────────────────────────────────────────────────────────────────────────────
@@ -580,12 +592,22 @@ final class Ingest {
             && n.attr("recipient") !is null)
             chatJ = jidAttr(n, "recipient");
         const remote = canonical(chatJ);
-        if (type == "read-self") {
-            cs.setChat(account, remote, "unreadCount", 0L);
-            cs.setChat(account, remote, "unreadMentionCount", 0L);
-            cs.setChat(account, remote, "markedUnread", false);
+        // our own read, on another device (the phone): a read-self (our read receipts off), or a read
+        // receipt that comes from us — in a 1:1 chat as from=us recipient=chat, in a group with
+        // participant=us. The chat is read here too.
+        bool selfRead = type == "read-self";
+        if (type == "read") {
+            if (from.server != "g.us" && ownUsers.canFind(from.user)) selfRead = true;
+            if (n.attr("participant") !is null && ownUsers.canFind(jidAttr(n, "participant").user)) selfRead = true;
+        }
+        if (selfRead) {
+            import std.conv : to;
+            long t;
+            try t = n.get("t").to!long; catch (Exception) {}
+            if (t == 0) { import std.datetime.systime : Clock; t = Clock.currTime.toUnixTime; }
+            readUpTo(remote, t);
             emitChat(remote);
-            return;
+            if (type == "read-self") return;
         }
         string[] ids = [n.get("id")];
         if (const l = n.child("list")) foreach (ref it; l.children) if (it.tag == "item" && it.get("id").length) ids ~= it.get("id");

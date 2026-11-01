@@ -117,9 +117,8 @@
 .cell.on { background: var(--highlight); }
 .cell-av { display: flex; align-items: center; padding: 0 12px 0 10px; }
 /* a status to watch: WhatsApp's green ring round the picture (grey once seen) */
-.av-ring { display: flex; align-items: center; justify-content: center; padding: 1px; border-radius: 27px; border: 2px solid transparent; }
-.av-ring.fresh { border: 2px solid var(--accent); }
-.av-ring.seen { border: 2px solid var(--outline); }
+.av-ring { position: relative; display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; }
+.av-ring-arcs { position: absolute; left: 0px; top: 0px; width: 54px; height: 54px; }
 .cell-text { display: flex; flex-direction: column; justify-content: center; flex: 1; width: 0px; padding-right: 15px; }
 .cell-top { display: flex; flex-direction: row; align-items: center; height: 24px; }
 .cell-name { flex: 1; width: 0px; font-size: 16px; line-height: 24px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -196,7 +195,7 @@
 .bubble.tout { border-radius: 7.5px 0px 7.5px 7.5px; }
 .who-click { cursor: pointer; }
 .who { font-size: 12.8px; font-weight: 500; line-height: 22px; }
-.quote { display: flex; flex-direction: row; align-self: stretch; margin: 0 0 4px 0; border-radius: 7.5px; background: rgba(0, 0, 0, 0.2); }
+.quote { display: flex; flex-direction: row; width: 100%; margin: 0 0 4px 0; border-radius: 7.5px; background: rgba(0, 0, 0, 0.2); }
 .app.light .quote { background: rgba(194, 189, 184, 0.15); }
 .quote-bar { width: 4px; border-top-left-radius: 7.5px; border-bottom-left-radius: 7.5px; }
 .quote-body { display: flex; flex-direction: column; flex: 1; width: 0px; padding: 4px 12px 8px 8px; }
@@ -226,6 +225,8 @@
 .composer { display: flex; flex-direction: row; align-items: center; min-height: 52px; padding: 5px; border-radius: 26px; background: var(--composer); box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.12); }
 .emoji-btn { margin-right: 6px; }
 .input { flex: 1; width: 0px; height: 22px; font-size: 15px; color: var(--fg); }
+/* the composer's growing text (ComposerField.qml): its height is the text's, up to 3 lines */
+.input-grow { flex: 1; width: 0px; margin: 0 8px; }
 /* the profile's "Recado" being edited: the whole width, WhatsApp Web's green underline */
 .about-in { align-self: stretch; height: 26px; font-size: 15px; color: var(--fg); border-bottom: 2px solid var(--accent); padding: 0 0 2px 0; }
 .about-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }

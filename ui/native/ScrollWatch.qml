@@ -58,6 +58,11 @@ Item {
     }
     // a jump the page already made (a reveal), replayed as a glide from where it was
     function here() { return flick ? flick.contentY : 0; }
+    // A glide crosses at most this much: the list is virtual, and every frame of a long glide makes
+    // and drops the rows it passes (each one laid out by the CSS engine) — a glide from far up through
+    // hundreds of messages held the UI for seconds. Farther than this, the page jumps to this distance
+    // from the target first, as WhatsApp Web does, and glides the rest.
+    function maxGlide() { return flick ? flick.height * 2 : 0; }
     function glideFrom(from) {
         if (!flick) return;
         // whatever glide was running (a ⌄⌄) ends here: its "snap to the end" no longer applies
@@ -65,6 +70,7 @@ Item {
         root.glidingToEnd = false;
         var to = flick.contentY;
         if (Math.abs(to - from) < 2) return;
+        if (Math.abs(to - from) > maxGlide()) from = to + (from < to ? -maxGlide() : maxGlide());
         glide.target = flick;
         glide.from = from;
         glide.to = to;
@@ -75,10 +81,17 @@ Item {
     }
     function glideToEnd() {
         if (!flick) { glided(); return; }
+        glide.stop();
         var end = flick.originY + flick.contentHeight - flick.height;
         var dist = end - flick.contentY;
         if (dist <= 1) { glided(); return; }
-        glide.stop();
+        if (dist > maxGlide()) {
+            // far: jump near the end (the virtual list re-estimates its height there), glide the rest
+            flick.contentY = end - maxGlide();
+            end = flick.originY + flick.contentHeight - flick.height;
+            dist = end - flick.contentY;
+            if (dist <= 1) { glided(); return; }
+        }
         glide.target = flick;
         glide.from = flick.contentY;
         glide.to = end;

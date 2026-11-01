@@ -318,6 +318,90 @@ SendReport sendDM(Connection c, Store store, ref const Device dev, Jid chat, con
     return rep;
 }
 
+/// encryptAndSendStatusDirectMsg (WAWebSendStatusReactionAction): an addon to someone's status (a
+/// reaction) goes pairwise to the author's devices and our own, as a GROUP_DIRECT fanout to
+/// status@broadcast: `<message to=status@broadcast type id><participants>…</participants><enc v=2
+/// type=skmsg/>[<device-identity>]</message>` — the empty skmsg as Web's createFanoutMsgStanza puts
+/// it; our devices get the deviceSent copy. Both accounts as LIDs (matWidConvert), as Web.
+SendReport sendStatusDirect(Connection c, Store store, ref const Device dev, Jid author, const(ubyte)[] messageProto,
+    string id = null) {
+    acquireSend();
+    scope (exit) sending = false;
+    import wa.message : messageStanzaType;
+    const type_ = messageStanzaType(messageProto);
+    const hideFail = type_ == "reaction";
+    SendReport rep;
+    if (author.server == "s.whatsapp.net") {
+        const lid = store.lidForPN(author.user);
+        if (lid.length == 0) throw new Exception("no LID known for " ~ author.user);
+        author = Jid.pair(lid, "lid");
+    }
+    if (author.server != "lid") throw new Exception("status author is not a user: " ~ author.toString());
+    if (dev.lid.length == 0) throw new Exception("this device has no LID");
+    ushort ownDev;
+    const ownLID = userOf(dev.lid, ownDev);
+    ushort pnDev;
+    rep.id = id.length ? id : newMessageId(userOf(dev.jid, pnDev));
+    const authorKey = Jid.pair(author.user, "lid").toString();
+    const ownKey = Jid.pair(ownLID, "lid").toString();
+    auto allDevices = userDevices(c, authorKey == ownKey ? [authorKey] : [authorKey, ownKey]);
+    Jid[] devices;
+    foreach (d; allDevices) if (!(d.user == ownLID && d.device == ownDev)) devices ~= d;
+
+    string[] missing;
+    foreach (d; devices) if (!store.hasSession(signalAddress(d))) missing ~= d.toString();
+    PreKeyBundle[string] bundles;
+    if (missing.length) {
+        Node pr;
+        try pr = c.sendIQ(fetchPreKeysIQ(missing, c.nextId()));
+        catch (Exception e) rep.skipped ~= "prekey fetch: " ~ e.msg;
+        if (const list = pr.child("list"))
+            foreach (ref u; list.children) {
+                if (u.tag != "user") continue;
+                auto ujid = u.attr("jid");
+                const key = ujid is null ? "" : (ujid.isJid ? ujid.jid.toString() : ujid.str);
+                try bundles[key] = parsePreKeyBundle(u);
+                catch (Exception e) rep.skipped ~= key ~ ": bundle: " ~ e.msg;
+            }
+    }
+    const dsm = deviceSentMessage("status@broadcast", messageProto);
+    EncTarget[] targets;
+    foreach (d; devices) {
+        const addr = signalAddress(d);
+        const key = d.toString();
+        const PreKeyBundle* b = key in bundles;
+        if (!store.hasSession(addr) && b is null) { rep.skipped ~= key ~ ": no session and no bundle"; continue; }
+        try {
+            auto enc = encryptEncToStore(store, dev, addr, d.user == ownLID ? dsm : messageProto, b);
+            if (hideFail) enc.attrs ~= Attr("decrypt-fail", Value("hide"));
+            if (enc.get("type") == "pkmsg") rep.preKeyMessages++;
+            targets ~= EncTarget(wireJid(d), enc);
+        } catch (Exception e) rep.skipped ~= key ~ ": " ~ e.msg;
+    }
+    rep.devices = targets.length;
+    import std.algorithm : any;
+    if (!targets.any!(t => t.device.user == author.user)) throw new Exception("none of the author's devices could be reached");
+    const(ubyte)[] identity;
+    if (rep.preKeyMessages) {
+        if (dev.account.length == 0)
+            throw new Exception("pre-key message needed but this device has no stored account identity (re-pair)");
+        identity = dev.account;
+        rep.identityIncluded = true;
+    }
+    auto stanza = buildMessageStanza(rep.id, Jid.pair("status", "broadcast"), type_, targets, identity);
+    auto sk = node("enc", [["v", "2"], ["type", "skmsg"]]);
+    stanza.children = stanza.children[0 .. 1] ~ sk ~ stanza.children[1 .. $];
+    c.expectAck(rep.id);
+    c.sendNode(stanza);
+    auto ack = c.waitAck(rep.id, 75.seconds);
+    if (const e = ack.get("error")) if (e.length && e != "0") throw new Exception("server returned error " ~ e);
+    {
+        import std.conv : to;
+        try rep.t = ack.get("t", "0").to!long; catch (Exception) {}
+    }
+    return rep;
+}
+
 unittest {
     // participantListHashV2 over ADStrings "user.0:device@server", sorted
     import wa.crypto : sha256;

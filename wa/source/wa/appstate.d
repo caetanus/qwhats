@@ -276,9 +276,35 @@ struct Decoder {
             foreach (f; s) if (f.number == ss.SyncdSnapshot.records) recs ~= readRecord(f.bytes, 0);   // SET
             const(ubyte)[][] added;
             foreach (ref m; recs) added ~= m.valueBlob[$ - 32 .. $];
+            const zeroHash = state.hash;
             ltHashSubtractThenAdd(state.hash, null, added);
-            checkSnapshotMAC(list.name, state, ProtoReader(s.get(ss.SyncdSnapshot.keyID).bytes).get(ss.KeyId.ID).bytes,
-                s.get(ss.SyncdSnapshot.mac).bytes);
+            const snapKey = ProtoReader(s.get(ss.SyncdSnapshot.keyID).bytes).get(ss.KeyId.ID).bytes;
+            try checkSnapshotMAC(list.name, state, snapKey, s.get(ss.SyncdSnapshot.mac).bytes);
+            catch (AppStateException e) {
+                import std.stdio : stderr;
+                try {
+                    bool[string] seen;
+                    size_t dups;
+                    const(ubyte)[][] lastWins;
+                    size_t[string] at;
+                    foreach (ref m; recs) {
+                        const k = cast(string) m.indexMAC.idup;
+                        if (k in seen) { dups++; lastWins[at[k]] = m.valueBlob[$ - 32 .. $]; }
+                        else { seen[k] = true; at[k] = lastWins.length; lastWins ~= m.valueBlob[$ - 32 .. $]; }
+                    }
+                    HashState alt;
+                    alt.ver = state.ver;
+                    alt.hash = zeroHash;
+                    ltHashSubtractThenAdd(alt.hash, null, lastWins);
+                    bool altOk;
+                    try { checkSnapshotMAC(list.name, alt, snapKey, s.get(ss.SyncdSnapshot.mac).bytes); altOk = true; } catch (Exception) {}
+                    size_t badContent;
+                    foreach (ref m; recs) try decodeMutation(m, state.ver); catch (Exception) badContent++;
+                    stderr.writefln("app-state %s snapshot v%d: %d record(s), %d distinct index(es), %d duplicate(s), %d undecodable; last-wins hash %s",
+                        list.name, state.ver, recs.length, seen.length, dups, badContent, altOk ? "MATCHES" : "does not match");
+                } catch (Exception) {}
+                throw e;
+            }
             const(ubyte)[][2][] macs;
             const before = outv.length;
             foreach (ref m; recs) {
@@ -315,7 +341,28 @@ struct Decoder {
                 if (prev !is null) removed ~= prev;
             }
             ltHashSubtractThenAdd(ns.hash, removed, added);
-            checkSnapshotMAC(list.name, ns, p.keyId, p.snapshotMACv);
+            try checkSnapshotMAC(list.name, ns, p.keyId, p.snapshotMACv);
+            catch (AppStateException e) {
+                // what the patch did, for the log: each mutation's operation, index and where the value
+                // it replaces came from (this patch / the store / nowhere)
+                import std.stdio : stderr;
+                import std.digest : toHexString;
+                try {
+                    stderr.writefln("app-state %s v%d: %d mutation(s), from v%d", list.name, p.ver, ms.length, state.ver);
+                    foreach (i, ref m; ms) {
+                        string src = "none";
+                        for (long j = cast(long) i - 1; j >= 0; j--)
+                            if (ms[j].indexMAC == m.indexMAC) { src = ms[j].op == 0 ? "patch-set" : "patch-remove"; break; }
+                        if (src == "none" && store.appStateMAC(list.name, m.indexMAC) !is null) src = "store";
+                        string idx = "?";
+                        try { auto mu = decodeMutation(m, p.ver); import std.array : join; idx = mu.index.join(","); } catch (Exception) {}
+                        if (idx.length > 60) idx = idx[0 .. 60];
+                        stderr.writefln("   #%d %s prev=%s idxmac=%s index=%s", i, m.op == 0 ? "SET" : "REMOVE", src,
+                            toHexString(m.indexMAC[0 .. 4]), idx);
+                    }
+                } catch (Exception) {}
+                throw e;
+            }
             {
                 const(ubyte)[][] vmacs;
                 foreach (ref m; ms) vmacs ~= m.valueBlob[$ - 32 .. $];

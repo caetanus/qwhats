@@ -6,6 +6,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtMultimedia
+import QtQuick.Effects
+import QtQuick.Shapes
 
 Item {
     id: root
@@ -31,6 +33,7 @@ Item {
     signal finished()                       // past the last update: the next person's, if any
     signal previous()                       // back from the first: the previous person's
     signal reply(int i, string text)
+    signal react(int i, string emoji)       // "" never: the same emoji again takes it back (outside)
     signal save(int i)                      // the update to disk
     signal share(int i)                     // the update forwarded (my status, a chat)
     signal toggleMute()                     // mute (or unmute) this person's updates
@@ -42,6 +45,9 @@ Item {
     readonly property var cur: items.length > index && index >= 0 ? items[index] : null
     property real progress: 0
     property bool held: false
+    property bool starting: false        // a video loading, not playing yet
+    // the video's own picture is on screen (until then its preview shows, under the spinner)
+    readonly property bool videoShown: player.playbackState === MediaPlayer.PlayingState && player.position > 0
     property bool typing: replyField.activeFocus && replyField.text !== ""
 
     function go(i) {
@@ -55,18 +61,29 @@ Item {
         progress = 0;
         if (!cur) return;
         shown(index);
-        if (cur.kind === "video") { player.source = cur.source; player.play(); }
+        // a video plays once the player has it ready (loaded, first frame decoded): played at once it
+        // began black and stuttering, the bar already running
+        if (cur.kind === "video") {
+            // the same video again (the list was only refreshed: seen, a reaction): no new status will
+            // come for an unchanged source — play what is loaded, or keep waiting for it
+            const same = String(player.source) === String(cur.source);
+            if (same && (player.mediaStatus === MediaPlayer.LoadedMedia || player.mediaStatus === MediaPlayer.BufferedMedia
+                    || player.mediaStatus === MediaPlayer.EndOfMedia)) {
+                starting = false; player.stop(); player.position = 0;
+                if (!held && !typing) player.play();
+            } else if (!same) { player.stop(); starting = true; player.source = cur.source; }
+        }
         else { player.stop(); player.source = ""; if (cur.kind !== "loading") anim.start(); }
     }
     // an update that finished downloading starts then (after `cur` follows the new list)
-    onItemsChanged: Qt.callLater(function () { if (cur && cur.kind !== "loading" && !anim.running && player.playbackState !== MediaPlayer.PlayingState) restart(); })
+    onItemsChanged: Qt.callLater(function () { if (cur && cur.kind !== "loading" && !anim.running && !starting && player.playbackState === MediaPlayer.StoppedState) restart(); })
     // the viewer takes the keys (not the reply field: focus there pauses, as typing a reply does)
     Component.onCompleted: { index = Math.max(0, Math.min(startAt, items.length - 1)); root.forceActiveFocus(); restart(); }
     onHeldChanged: paused(held || typing)
     onTypingChanged: paused(held || typing)
     function paused(p) {
         if (p) { anim.pause(); if (player.playbackState === MediaPlayer.PlayingState) player.pause(); }
-        else { anim.resume(); if (cur && cur.kind === "video") player.play(); }
+        else { anim.resume(); if (cur && cur.kind === "video" && !starting) player.play(); }
     }
 
     // the update's clock: wall time, not an animation — an animation only advances while the window
@@ -93,6 +110,28 @@ Item {
     }
 
     Rectangle { anchors.fill: parent; color: "#111B21" }
+    // as WhatsApp: the update itself, filling the window, blurred and dimmed behind it (a video live)
+    Item {
+        id: backdrop
+        anchors.fill: parent
+        visible: !!root.cur && root.cur.kind !== "text"
+        layer.enabled: visible
+        layer.effect: MultiEffect {
+            blurEnabled: true
+            blur: 1.0
+            blurMax: 64
+            brightness: -0.35
+            autoPaddingEnabled: false
+        }
+        Image {
+            anchors.fill: parent
+            source: !root.cur ? "" : root.cur.kind === "image" ? root.cur.source
+                : (root.cur.kind === "video" || root.cur.kind === "loading") ? (root.cur.poster || root.cur.thumb || "") : ""
+            sourceSize.width: 256
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+        }
+    }
 
     // the update, 9:16 at most, centred
     Item {
@@ -106,6 +145,14 @@ Item {
             anchors.fill: parent
             visible: !!root.cur && root.cur.kind === "image"
             source: visible ? root.cur.source : ""
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+        }
+        // the video's still under it: shown until (and wherever) the player draws nothing
+        Image {
+            anchors.fill: parent
+            visible: !!root.cur && root.cur.kind === "video" && !!root.cur.poster
+            source: visible ? root.cur.poster : ""
             fillMode: Image.PreserveAspectFit
             asynchronous: true
         }
@@ -134,13 +181,31 @@ Item {
         // still downloading: the message's own preview (tiny, so blurred when stretched) under the spinner
         Image {
             anchors.fill: parent
-            visible: !!root.cur && root.cur.kind === "loading" && !!root.cur.thumb
-            source: visible ? root.cur.thumb : ""
+            visible: !!root.cur && (root.cur.kind === "loading" ? !!(root.cur.poster || root.cur.thumb)
+                : root.cur.kind === "video" && !root.videoShown && !root.cur.poster && !!root.cur.thumb)
+            source: visible ? (root.cur.poster || root.cur.thumb) : ""
             fillMode: Image.PreserveAspectFit
             smooth: true
             opacity: 0.85
         }
-        BusyIndicator { anchors.centerIn: parent; running: !!root.cur && root.cur.kind === "loading"; visible: running }
+        // the spinner: a white arc turning (the Controls style's own is dark on this dark viewer)
+        Item {
+            id: spinner
+            anchors.centerIn: parent
+            width: 44; height: 44
+            property bool running: !!root.cur && (root.cur.kind === "loading" || (root.cur.kind === "video" && (root.starting
+                || player.mediaStatus === MediaPlayer.BufferingMedia || player.mediaStatus === MediaPlayer.StalledMedia)))
+            visible: running
+            Shape {
+                anchors.fill: parent
+                preferredRendererType: Shape.CurveRenderer
+                ShapePath {
+                    strokeWidth: 4; strokeColor: "#FFFFFF"; fillColor: "transparent"; capStyle: ShapePath.RoundCap
+                    PathAngleArc { centerX: 22; centerY: 22; radiusX: 19; radiusY: 19; startAngle: 0; sweepAngle: 270 }
+                }
+            }
+            RotationAnimator on rotation { from: 0; to: 360; duration: 900; loops: Animation.Infinite; running: spinner.running }
+        }
         // the caption, over the bottom of the picture
         Rectangle {
             anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
@@ -169,8 +234,15 @@ Item {
         id: player
         videoOutput: vout
         audioOutput: AudioOutput { muted: root.muted }
-        onPositionChanged: if (duration > 0) root.progress = position / duration
-        onMediaStatusChanged: if (mediaStatus === MediaPlayer.EndOfMedia) root.go(root.index + 1)
+        onPositionChanged: if (player.duration > 0) root.progress = player.position / player.duration
+        onMediaStatusChanged: {
+            if (mediaStatus === MediaPlayer.EndOfMedia) { root.go(root.index + 1); return; }
+            if (mediaStatus === MediaPlayer.InvalidMedia) { root.starting = false; root.go(root.index + 1); return; }
+            if (root.starting && (mediaStatus === MediaPlayer.LoadedMedia || mediaStatus === MediaPlayer.BufferedMedia)) {
+                root.starting = false;
+                if (!root.held && !root.typing) play();
+            }
+        }
     }
 
     // the bars, one per update
@@ -256,6 +328,29 @@ Item {
         MouseArea { anchors.fill: parent; anchors.margins: -8; cursorShape: Qt.PointingHandCursor; onClicked: root.go(root.index + 1) }
     }
 
+    // the phones' quick reactions, over the reply field while it has the focus
+    Row {
+        visible: !root.mine && replyField.activeFocus && replyField.text === ""
+        anchors.horizontalCenter: stage.horizontalCenter
+        y: parent.height - 62 - 56
+        spacing: 14
+        Repeater {
+            model: ["\u{1F602}", "\u{1F62E}", "\u{1F60D}", "\u{1F622}", "\u{1F44F}", "\u{1F525}", "\u{1F389}", "\u{1F4AF}"]
+            delegate: Text {
+                required property string modelData
+                text: modelData
+                font.pixelSize: 30
+                scale: qa.pressed ? 0.8 : (root.cur && root.cur.reaction === modelData ? 1.2 : 1)
+                Behavior on scale { NumberAnimation { duration: 90 } }
+                MouseArea {
+                    id: qa
+                    anchors.fill: parent; anchors.margins: -4; cursorShape: Qt.PointingHandCursor
+                    onClicked: { root.react(root.index, modelData); replyField.focus = false; }
+                }
+            }
+        }
+    }
+
     // reply (not on my own updates)
     Rectangle {
         visible: !root.mine
@@ -264,7 +359,7 @@ Item {
         color: "#2A3942"
         TextField {
             id: replyField
-            anchors.left: parent.left; anchors.right: sendBtn.left; anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left; anchors.right: likeBtn.left; anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: 16; anchors.rightMargin: 8
             placeholderText: "Responder…"
             placeholderTextColor: "#99FFFFFF"
@@ -272,6 +367,21 @@ Item {
             background: null
             onAccepted: send()
             function send() { if (text.trim() !== "") { root.reply(root.index, text); text = ""; focus = false; } }
+        }
+        // WhatsApp Web's like: the green heart (filled once given; again takes it back)
+        Text {
+            id: likeBtn
+            anchors.right: sendBtn.left; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter
+            text: root.cur && root.cur.reaction && root.cur.reaction !== "\u{1F49A}" ? root.cur.reaction : "\u{1F49A}"
+            opacity: root.cur && root.cur.reaction ? 1 : 0.55
+            font.pixelSize: 22
+            scale: likeArea.pressed ? 0.85 : 1
+            Behavior on scale { NumberAnimation { duration: 90 } }
+            MouseArea {
+                id: likeArea
+                anchors.fill: parent; anchors.margins: -8; cursorShape: Qt.PointingHandCursor
+                onClicked: root.react(root.index, root.cur && root.cur.reaction ? root.cur.reaction : "\u{1F49A}")
+            }
         }
         Image {
             id: sendBtn

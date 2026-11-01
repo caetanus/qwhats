@@ -29,6 +29,7 @@ import MsgChevron from "./MsgChevron.qml";
 import MsgText from "./MsgText.qml";
 import Splitter from "./Splitter.qml";
 import StatusRing from "./StatusRing.qml";
+import ComposerField from "./ComposerField.qml";
 import "./native.css";
 
 const ACK = { FAILED: -1, CLOCK: 0, SENT: 1, RECEIVED: 2, READ: 3, PLAYED: 4 };   // WAWebAck.ACK
@@ -698,6 +699,13 @@ export function Native() {
     for (const st of statuses()) if (!st.isMe) o[st.id] = st.viewed || st.muted ? "seen" : "new";
     return o;
   });
+  const storyById = createMemo(() => {
+    const o: any = {};
+    for (const st of statuses()) if (!st.isMe) o[st.id] = st;
+    return o;
+  });
+  // the list's ring: one arc per update, the new ones green (a muted person's all grey)
+  function listRingSeen(id: string) { const st = storyById()[id]; return !st ? [] : st.muted ? (st.items || []).map(() => true) : ringSeen(st); }
   function myPic() { const m = me(); return m && m.profilePicThumb && m.profilePicThumb !== "-" ? m.profilePicThumb : ""; }
   function storyState(id: string) { return storyOf()[id] || ""; }
   function onMsgAdd(m: Msg) {
@@ -883,7 +891,8 @@ export function Native() {
   function hasMedia(m: any) { return !!m && !!m.mediaData; }
 function isStickerMsg(m: any) { return !!m && m.type === "sticker"; }
 function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "image" || m.type === "sticker"); }
-  function focusComposer() { if (composerInput && composerInput.forceActiveFocus) composerInput.forceActiveFocus(); }
+  const [composerFocus, setComposerFocus] = createSignal(0);
+  function focusComposer() { setComposerFocus(composerFocus() + 1); }
   function reply() { const m = mm(); if (m) { setEditing(null); setReplyTo(m); setTimeout(focusComposer, 30); } }
   function react(e: string) { const m = mm(); if (m) call("sendReactionToMsg", { msg: m.id, reactionText: e }, actionDone); }
   function openReact() { if (reactMenu && reactMenu.open) reactMenu.open(menuX, menuY); }
@@ -1100,7 +1109,8 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
   const [story, setStory] = createSignal<any>(null);        // the author being watched
   const [storyItems, setStoryItems] = createSignal<any[]>([]);
   function storyItem(m: any) {
-    const base = { id: m.id, when: statusWhen(m.t), caption: m.caption || "", viewed: !!m.viewed };
+    const mine = (m.reactions || []).find((r: any) => r.hasReactionByMe);
+    const base = { id: m.id, when: statusWhen(m.t), caption: m.caption || "", viewed: !!m.viewed, reaction: mine ? mine.aggregateEmoji : "" };
     if (m.type === "chat") {
       const words = (m.body || "").split(" ").length;
       return { ...base, kind: "text", text: m.body || "", bg: m.backgroundColor || "", fg: m.textColor && m.textColor.indexOf("#00") !== 0 ? m.textColor : "", font: m.font || 0, seconds: Math.max(5, Math.min(15, Math.round(words / 3))) };
@@ -1109,7 +1119,26 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
     const kind = m.type === "video" ? "video" : "image";
     // while it downloads: the message's own little preview, under the spinner
     const thumb = m.mediaData && m.mediaData.preview ? "data:image/jpeg;base64," + m.mediaData.preview : "";
-    return f === "" ? { ...base, kind: "loading", want: kind, thumb: thumb } : { ...base, kind: kind, source: "file://" + f, seconds: kind === "video" ? 0 : 6 };
+    // a video's still (a frame of it, by the core): under the video and behind it, blurred — and all
+    // there is to see of a "photo with music" (two frames in 15 s, which the player may never draw)
+    const hq = m.mediaData && m.mediaData.thumbnailHQ ? "file://" + m.mediaData.thumbnailHQ : "";
+    const poster = kind === "video" ? statusPoster[m.id] || hq : "";
+    return f === "" ? { ...base, kind: "loading", want: kind, thumb: thumb, poster: poster } : { ...base, kind: kind, source: "file://" + f, seconds: kind === "video" ? 0 : 6, thumb: thumb, poster: poster };
+  }
+  const statusPoster: Record<string, string> = {};
+  // a video update's frame, asked of the core once its file is here (fetchThumbnail: ffmpeg)
+  function askPoster(id: string) {
+    const it = storyItems().find((x: any) => x.id === id);
+    if (!it || it.poster || it.kind !== "video" || statusPoster[id] !== undefined) return;
+    statusPoster[id] = "";
+    call("fetchThumbnail", { msg: id }, (r: any, _e: any) => {
+      const f = r && r.mediaData && r.mediaData.thumbnailHQ ? "file://" + r.mediaData.thumbnailHQ : "";
+      if (f === "") return;
+      statusPoster[id] = f;
+      const l = storyItems();
+      const i = l.findIndex((x: any) => x.id === id);
+      if (i >= 0) { const n = l.slice(); n[i] = { ...n[i], poster: f }; setStoryItems(n); }
+    });
   }
   function watchStatus(st: any, fromEnd?: boolean) {
     // WhatsApp Web opens at the first update not seen yet (at the last one, coming back)
@@ -1117,7 +1146,7 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
     storyStart = fromEnd ? st.items.length - 1 : first < 0 ? 0 : first;
     setStoryItems(st.items.map(storyItem));
     setStory(st);
-    for (let i = 0; i < st.items.length; i++) fetchStory(i);
+    for (let i = 0; i < st.items.length; i++) { fetchStory(i); askPoster(st.items[i].id); }
   }
   let storyStart = 0;
   // the status updates' pictures and videos fetched ahead (WhatsApp's phones do): the unseen ones,
@@ -1167,6 +1196,7 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
       const n = l.slice();
       n[i] = { ...n[i], kind: n[i].want, source: "file://" + f, seconds: n[i].want === "video" ? 0 : 6 };
       setStoryItems(n);
+      askPoster(id);
     }
   }
   function fetchStory(i: number) {
@@ -1185,6 +1215,24 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
       l[i] = { ...l[i], viewed: true };
       setStoryItems(l);
     }
+  }
+  // a reaction to someone's status (the same emoji again takes it back), shown at once
+  function storyReact(i: number, emoji: string) {
+    const st = story();
+    const it = storyItems()[i];
+    if (!st || st.isMe || !it) return;
+    const next = it.reaction === emoji ? "" : emoji;
+    const l = storyItems().slice();
+    l[i] = { ...l[i], reaction: next };
+    setStoryItems(l);
+    call("sendReactionToMsg", { msg: it.id, reactionText: next }, (_r: any, e: any) => {
+      if (!e) return;
+      const b = storyItems().slice();
+      const j = b.findIndex((x: any) => x.id === it.id);
+      if (j >= 0) { b[j] = { ...b[j], reaction: it.reaction }; setStoryItems(b); }
+      setStoryNotice("Não foi possível reagir");
+      setTimeout(() => setStoryNotice(""), 2500);
+    });
   }
   function storyReply(i: number, text: string) {
     const st = story();
@@ -1241,8 +1289,10 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
   // a person's status updates muted or not (WhatsApp's "Silenciar" in the status menus)
   function setStatusMute(st: any, muted: boolean) {
     setStatuses(statuses().map((x: any) => x.id === st.id ? { ...x, muted: muted } : x));
-    call("sendStatusMute", { id: st.id, muted: muted }, (_r: any, err: any) => {
-      const note = err ? "Não foi possível " + (muted ? "silenciar" : "reativar o som") : muted ? "Status de " + st.name + " silenciados" : "Som dos status de " + st.name + " reativado";
+    call("sendStatusMute", { id: st.id, muted: muted }, (r: any, err: any) => {
+      // kept here even when it could not reach the phone (the account's sync state on the server is off)
+      const here = r && r.synced === false ? " neste computador (não sincronizou com o celular)" : "";
+      const note = err ? "Não foi possível " + (muted ? "silenciar" : "reativar o som") : muted ? "Status de " + st.name + " silenciados" + here : "Som dos status de " + st.name + " reativado" + here;
       if (story()) { setStoryNotice(note); setTimeout(() => setStoryNotice(""), 2500); } else setSyncing(note);
       if (!story()) setTimeout(() => setSyncing(""), 2500);
       if (err) loadStatuses();
@@ -1447,7 +1497,7 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
   function toggleInfoMute() {
     const c = selChat();
     if (!c) return;
-    call("sendConversationMute", { chat: c.id, expiration: muted(c) ? 0 : -1 }, ignore);
+    call("sendConversationMute", { chat: c.id, expiration: muted(c) ? 0 : -1 }, actionDone);
   }
   function ephemeralLabel() {
     const c: any = selChat();
@@ -1598,7 +1648,14 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
   }
   // a menu action the user is waiting to see happen: its failure shows (and clears after a while)
   let actionNoteSeq = 0;
-  function actionDone(_res: any, err: any) {
+  function actionDone(res: any, err: any) {
+    // done here, but the phone and the other devices did not get it (the account's sync state is off)
+    if (!err && res && res.synced === false) {
+      setSyncing("Feito neste computador (não sincronizou com o celular)");
+      const q0 = ++actionNoteSeq;
+      setTimeout(() => { if (q0 === actionNoteSeq) setSyncing(""); }, 5000);
+      return;
+    }
     if (!err) return;
     const m = err.message || "";
     setSyncing(m.indexOf("not implemented") >= 0 ? "Esta ação ainda não está disponível no núcleo D" : "Não foi possível concluir: " + m);
@@ -2704,7 +2761,8 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
                 <div class="cell" classList={{ on: c.id === sel() }} onClick={() => selecting() ? togglePick(c.id) : open(c.id)} onContextMenu={(e) => openChatMenu(c, e.clientX, e.clientY)}>
                   <Show when={selecting()}><div class="cell-sel"><div class="fwd-check" classList={{ on: picked().indexOf(c.id) >= 0 }}><Show when={picked().indexOf(c.id) >= 0}><img class="ic16" src={ic("check", tk().onAccent)} /></Show></div></div></Show>
                   <div class="cell-av">
-                    <div class="av-ring" classList={{ fresh: storyState(c.id) === "new", seen: storyState(c.id) === "seen" }} onClick={() => { const st = statuses().find((x: any) => x.id === c.id); if (st) watchStatus(st); }}>
+                    <div class="av-ring" onClick={() => { const st = storyById()[c.id]; if (st) watchStatus(st); }}>
+                    <Show when={storyState(c.id) !== ""}><StatusRing class="av-ring-arcs" seen={listRingSeen(c.id)} accent={tk().accent} muted={tk().muted} /></Show>
                     <div class="av" style={{ background: photo(c.id)[0] }}>
                       <Show when={!c.profilePicThumb}><img class="av-ic" src={ic(c.kind === "user" ? "person" : "group", photo(c.id)[1])} /></Show>
                       <Show when={!!c.profilePicThumb}><img class="av-img" src={"file://" + (c.profilePicThumb || "")} /></Show>
@@ -3317,7 +3375,8 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
                 <Show when={!isRec()}>
                   <button class="ib" classList={{ on: attachOpen() }} onClick={() => toggleAttach()}><img class="ic" src={ic(attachOpen() ? "close" : "attach", tk().fg)} /></button>
                   <button class="ib emoji-btn" classList={{ on: exprOpen() }} onClick={() => toggleExpr()}><img class="ic" src={ic(exprOpen() ? "close" : "emoji", tk().fg)} /></button>
-                  <input class="input" ref={composerInput} placeholder="Digite uma mensagem" value={draft()} onInput={(e) => setDraft(e.currentTarget.value)} onKeyDown={(e) => { if (e.key === "Enter") send(); if (e.key === "v" && e.ctrlKey) paste(); }} />
+                  <ComposerField class="input-grow" text={draft()} placeholder="Digite uma mensagem" textColor={tk().fg} hintColor={tk().muted} focusRequest={composerFocus()}
+                    onEdited={(t: string) => setDraft(t)} onEnter={() => send()} onPaste={() => paste()} />
                 </Show>
                 <Show when={!isRec() && draft() === "" && !isSms(sel())}>
                   <button class="ib send-btn" onClick={() => startRec()}><img class="ic" src={ic("mic", tk().fg)} /></button>
@@ -3599,7 +3658,7 @@ function isPictureMsg(m: any) { return !!m && !!m.mediaData && (m.type === "imag
             saveIcon={ic("download", "#FFFFFF")} shareIcon={ic("forward", "#FFFFFF")} notice={storyNotice()}
             authorMuted={!!(story() && story().muted)} menuIcon={ic("menu", "#FFFFFF")} onToggleMute={() => storyMute()}
             onSave={(i: number) => storySave(i)} onShare={(i: number) => storyShare(i)}
-            onShown={(i: number) => storyShown(i)} onClosed={() => storyClose()} onFinished={() => storyAuthor(1)} onPrevious={() => storyAuthor(-1)} onReply={(i: number, t: string) => storyReply(i, t)} />
+            onShown={(i: number) => storyShown(i)} onClosed={() => storyClose()} onFinished={() => storyAuthor(1)} onPrevious={() => storyAuthor(-1)} onReply={(i: number, t: string) => storyReply(i, t)} onReact={(i: number, e: string) => storyReact(i, e)} />
         </div>
       </Show>
       <Show when={mediaOpen()}>

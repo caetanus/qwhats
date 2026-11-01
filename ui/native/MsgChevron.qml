@@ -20,7 +20,9 @@ Item {
         bubble = p;
         hover = Qt.createQmlObject('import QtQuick; HoverHandler {}', p);
     }
-    Component.onCompleted: Qt.callLater(attach)
+    // a Timer of its own, not Qt.callLater: a row the list drops before it fires takes the Timer with
+    // it (a callLater then ran attach in a destroyed context — thousands of errors while scrolling)
+    Timer { interval: 0; running: true; onTriggered: root.attach() }
     visible: !!hover && (hover.hovered || ma.containsMouse)
 
     // fixed sizes: the engine gives this item's box no height, the drawing must not depend on it

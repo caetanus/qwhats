@@ -1186,6 +1186,14 @@ final class Client {
         }
     }
 
+/// trySendAppState: the change to the phone and the other devices; false (logged) when it could
+    /// not go — the action still holds here (see sendStatusMute: an account whose regular_high copy on
+    /// the server is inconsistent takes no patches there)
+    bool trySendAppState(const ref PatchInfo info, string what) {
+        try { sendAppState(info); return true; }
+        catch (Exception e) { logf("   %s kept on this device only: %s", what, e.msg); return false; }
+    }
+
 /// The media hosts (refreshMediaConn: kept for the answer's ttl).
     string[] hosts() {
         import std.datetime.systime : Clock;
@@ -1820,7 +1828,15 @@ final class Client {
         static import wa.actions;
         auto t = target(key);
         const ms = nowMs;
-        sendRaw(t.chat, wa.actions.reactionMessage(messageKey(t), text, ms));
+        const msg = wa.actions.reactionMessage(messageKey(t), text, ms);
+        if (t.chat == "status@broadcast") {
+            // someone's status: pairwise to the author's devices and ours (WAWebSendStatusReactionAction)
+            import wa.send : sendStatusDirect;
+            if (t.fromMe) throw new Exception("no reactions to our own status");
+            auto c = conn;
+            if (c is null) throw new Exception("not connected");
+            sendStatusDirect(c, store, dev, parseJidString(t.sender), msg);
+        } else sendRaw(t.chat, msg);
         Addon a;
         a.kind = "reaction";
         a.parentId = t.msgId;
@@ -1880,12 +1896,13 @@ final class Client {
     }
 
     /// sendStarMsgs (WAWebChatSendStarMsgsBridge; appstate BuildStar)
-    void sendStarMsgs(string[] keys, bool star) {
+    JSONValue sendStarMsgs(string[] keys, bool star) {
         import wa.appstate_send : buildStar;
+        bool synced = true;
         foreach (k; keys) {
             auto t = target(k);
             auto info = buildStar(t.chat, t.sender, t.msgId, t.fromMe, star);
-            sendAppState(info);
+            if (!trySendAppState(info, "star")) synced = false;
             chats.setStarMark(account, k, star);   // a later history copy keeps it
             auto m = t.m;
             if (star) m["star"] = true;
@@ -1893,10 +1910,11 @@ final class Client {
             chats.updateMsg(m);
             emit("Msg:change", ingest.handOut(m));
         }
+        return JSONValue(["synced": JSONValue(synced)]);
     }
 
     /// sendDeleteMsgs (WAWebChatSendDeleteMsgsBridge): delete for me — one app-state patch
-    void sendDeleteMsgs(string[] keys, bool deleteMedia) {
+    JSONValue sendDeleteMsgs(string[] keys, bool deleteMedia) {
         import wa.appstate_send : buildDeleteForMe, PatchInfo;
         PatchInfo patch;
         Target[] ts;
@@ -1910,7 +1928,7 @@ final class Client {
             ts ~= t;
         }
         if (!ts.length) throw new Exception("no deletable messages");
-        sendAppState(patch);
+        const synced = trySendAppState(patch, "delete for me");
         foreach (ref t; ts) {
             const key = t.m["id"].str;
             chats.setDeleteMark(account, key);   // a later history copy does not bring it back
@@ -1918,6 +1936,7 @@ final class Client {
             emit("Msg:remove", JSONValue(["account": JSONValue(account), "id": JSONValue(key), "remote": JSONValue(t.chat)]));
             ingest.emitChat(t.chat);
         }
+        return JSONValue(["synced": JSONValue(synced)]);
     }
 
     /// sendPinInChat (WAWebPinMsgAction): pinned for everyone for a while (24 h, 7 or 30 days), or
@@ -3193,17 +3212,18 @@ final class Client {
 
     /// sendDelete (the Go core's): the chat deleted on every device (BuildDeleteChat up to its last
     /// message), its messages gone here, the chat dropped from the list
-    void deleteChat(string chatId) {
+    JSONValue deleteChat(string chatId) {
         import wa.appstate_send : buildDeleteChat;
         import std.datetime.systime : Clock;
         MsgKey k;
         bool has;
         const t = lastKey(chatId, k, has);
         auto info = buildDeleteChat(chatId, t, has ? &k : null, false);
-        sendAppState(info);
+        const synced = trySendAppState(info, "chat delete");
         ingest.cleared(chatId, Clock.currTime.toUnixTime, false);
         chats.setChat(account, chatId, "deleted", true);
         emit("Chat:remove", JSONValue(["account": JSONValue(account), "id": JSONValue(chatId)]));
+        return JSONValue(["synced": JSONValue(synced)]);
     }
 
     /// setArchive (WAWebSetArchiveChatAction): archiving also unpins.
@@ -3235,23 +3255,27 @@ final class Client {
     }
 
     /// sendConversationMute: expiration 0 = unmute, < 0 = forever, else until that time (seconds).
-    void sendConversationMute(string chatId, long expiration) {
+    /// Like sendStatusMute, it holds here even when the sync fails (regular_high, see there): {synced}.
+    JSONValue sendConversationMute(string chatId, long expiration) {
         import wa.appstate_send : buildMute;
-        auto info = expiration == 0 ? buildMute(chatId, false, 0)
-            : buildMute(chatId, true, expiration < 0 ? -1 : expiration * 1000);
-        sendAppState(info);
         chats.setChat(account, chatId, "muteExpiration", expiration);
         ingest.emitChat(chatId);
+        auto info = expiration == 0 ? buildMute(chatId, false, 0)
+            : buildMute(chatId, true, expiration < 0 ? -1 : expiration * 1000);
+        return JSONValue(["synced": JSONValue(trySendAppState(info, "chat mute"))]);
     }
 
-    /// sendStatusMute (the Go core's): mute / unmute someone's status updates.
-    void sendStatusMute(string id, bool muted) {
+    /// sendStatusMute (the Go core's): mute / unmute someone's status updates. The mute holds here even when the sync fails: an account whose regular_high copy on the server
+    /// no longer matches its own MAC (seen: the snapshot's LTHash, recomputed with whatsmeow too, does not
+    /// give the MAC the server holds) cannot take patches — WhatsApp's way out of that logs every
+    /// companion out. Returns {synced}: whether the phone and the other devices got it.
+    JSONValue sendStatusMute(string id, bool muted) {
         import wa.appstate_send : buildUserStatusMute;
-        auto j = parseJidString(id);
-        auto info = buildUserStatusMute(Jid.pair(j.user, j.server).toString(), muted);
-        sendAppState(info);
         chats.setStatusMuted(account, id, muted);
         emit("Status:change", JSONValue(["account": JSONValue(account), "id": JSONValue(id)]));
+        auto j = parseJidString(id);
+        auto info = buildUserStatusMute(Jid.pair(j.user, j.server).toString(), muted);
+        return JSONValue(["synced": JSONValue(trySendAppState(info, "status mute"))]);
     }
 
     /// "Adicionar aos favoritos" / "Remover dos favoritos" on a sticker (WAWebFavoriteStickerAction).

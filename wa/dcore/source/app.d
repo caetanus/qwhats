@@ -256,9 +256,7 @@ JSONValue handle(string method, JSONValue p, out string error) {
             if (auto ml = "mentionedJidList" in p) if (ml.type == JSONType.array) foreach (x; ml.array) mentions ~= x.str;
             if (ps(p, "chat").length == 0 || ps(p, "text").length == 0) { error = "missing parameter"; return JSONValue(null); }
             return client.sendText(ps(p, "chat"), ps(p, "text"), ps(p, "quotedMsg"), mentions);
-        case "sendStatusMute":
-            client.sendStatusMute(ps(p, "id"), pb(p, "muted"));
-            return JSONValue(true);
+        case "sendStatusMute": return client.sendStatusMute(ps(p, "id"), pb(p, "muted"));
         case "forwardMessages":
             string[] msgs, targets;
             if (auto a = "msgs" in p) if (a.type == JSONType.array) foreach (x; a.array) msgs ~= x.str;
@@ -310,9 +308,7 @@ JSONValue handle(string method, JSONValue p, out string error) {
         case "setPin":
             client.setPin(ps(p, "chat"), pb(p, "pin"));
             return JSONValue(true);
-        case "sendConversationMute":
-            client.sendConversationMute(ps(p, "chat"), pi(p, "expiration"));
-            return JSONValue(true);
+        case "sendConversationMute": return client.sendConversationMute(ps(p, "chat"), pi(p, "expiration"));
         case "markUnread":
             client.markChatRead(ps(p, "chat"), false);
             return JSONValue(true);
@@ -347,6 +343,11 @@ JSONValue handle(string method, JSONValue p, out string error) {
                 return openChat(id);
             }
         case "logout": client.logout(); return JSONValue(true);
+        // diagnostics: one app-state collection fetched again from its snapshot (read-only on the server)
+        case "AppState.resync":
+            if (client.syncOneDg is null) { error = "not connected"; return JSONValue(null); }
+            client.syncOneDg(ps(p, "name"), true, false);
+            return JSONValue(true);
         case "pairPhone": return JSONValue(["code": JSONValue(client.pairPhone(ps(p, "phone")))]);
         // the app lock (core/extras.go: an scrypt hash in <data>/applock.json)
         case "AppLock.status": return JSONValue(["enabled": JSONValue(appLock.enabled())]);
@@ -365,12 +366,12 @@ JSONValue handle(string method, JSONValue p, out string error) {
         case "sendReactionToMsg": client.sendReaction(ps(p, "msg"), ps(p, "reactionText")); return JSONValue(true);
         case "sendRevoke": client.sendRevoke(strs(p, "msgs")); return JSONValue(true);
         case "editMessage": client.editMessage(ps(p, "msg"), ps(p, "text")); return JSONValue(true);
-        case "sendStarMsgs": client.sendStarMsgs(strs(p, "msgs"), pb(p, "star")); return JSONValue(true);
-        case "sendDeleteMsgs": client.sendDeleteMsgs(strs(p, "msgs"), pb(p, "deleteMedia")); return JSONValue(true);
+        case "sendStarMsgs": return client.sendStarMsgs(strs(p, "msgs"), pb(p, "star"));
+        case "sendDeleteMsgs": return client.sendDeleteMsgs(strs(p, "msgs"), pb(p, "deleteMedia"));
         case "sendPinInChat": client.sendPinInChat(ps(p, "msg"), pb(p, "pin"), pi(p, "seconds")); return JSONValue(true);
         case "markPlayed": client.markPlayed(ps(p, "msg")); return JSONValue(true);
         case "subscribeUserPresence": client.subscribePresence(ps(p, "id")); return JSONValue(true);
-        case "sendDelete": client.deleteChat(ps(p, "chat")); return JSONValue(true);
+        case "sendDelete": return client.deleteChat(ps(p, "chat"));
         case "fetchThumbnail": return client.fetchThumbnail(ps(p, "msg"));
         case "Newsletter.refresh": return client.refreshChannel(ps(p, "id"));
         // voice notes (core/recorder.go)
